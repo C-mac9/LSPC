@@ -1,0 +1,1862 @@
+<title>Lifetime Spending Power Calculator | CS Investment Counsel</title>
+<style>
+ :root{
+ color-scheme:light;
+ --navy:#02468d;
+ --navy-dark:#013064;
+ --green:#296934;
+ --green-bg:#e4f2e6;
+ --ink:#313131;
+ --bg:#f5f5f5;
+ --line:#dfdfdf;
+ --white:#ffffff;
+ --muted:#6b7280;
+ --amber:#8a6100;
+ --amber-bg:#fdf5e3;
+ --amber-line:#eddcb0;
+ --red:#a11;
+ --red-bg:#fdecec;
+ --red-line:#f0b8b8;
+ }
+ *{box-sizing:border-box;}
+ body{
+ margin:0;
+ font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+ color:var(--ink);
+ background:var(--bg);
+ line-height:1.5;
+ }
+ header{background:var(--navy);color:var(--white);padding:22px 28px;}
+ header .logo-row{display:flex;align-items:center;gap:14px;margin-bottom:4px;}
+ header .csic-logo{height:48px;width:auto;background:#fff;border-radius:6px;padding:6px 10px;display:block;}
+ header h1{margin:4px 0 0;font-size:24px;font-weight:600;}
+ header p{margin:6px 0 0;font-size:14px;opacity:.9;max-width:760px;}
+ .wrap{max-width:1180px;margin:0 auto;padding:20px 20px 60px;}
+
+ /* ---- Toolbar ---- */
+ .toolbar{
+ display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+ background:#fff;border:1px solid var(--line);border-radius:10px;
+ padding:12px 14px;margin-bottom:18px;
+ }
+ .toolbar button{
+ border:1px solid var(--navy);background:#fff;color:var(--navy);
+ padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;
+ }
+ .toolbar button:hover{background:var(--navy);color:#fff;}
+ .toolbar select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;min-width:170px;}
+ .toolbar .spacer{flex:1;}
+ .toolbar .state{font-size:12px;color:var(--muted);}
+
+ /* ---- Status banner ---- */
+ .banner{border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13.5px;display:none;}
+ .banner.show{display:block;}
+ .banner.ok{background:var(--green-bg);border:1px solid #bcd9c2;color:var(--green);}
+ .banner.soon{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);}
+ .banner.expired{background:var(--red-bg);border:1px solid var(--red-line);color:var(--red);}
+ .banner strong{display:block;font-size:14.5px;margin-bottom:2px;}
+ .banner button{
+ margin-top:8px;border:1px solid currentColor;background:transparent;color:inherit;
+ padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:600;
+ }
+
+ .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+ @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+ .card{
+ background:var(--white);border:1px solid var(--line);border-radius:10px;
+ padding:20px 22px;box-shadow:0 1px 2px rgba(0,0,0,.04);margin-bottom:24px;
+ }
+ .card h2{
+ margin:0 0 16px;font-size:15px;text-transform:uppercase;letter-spacing:1px;
+ color:var(--navy);border-bottom:2px solid var(--bg);padding-bottom:8px;
+ }
+ .field{margin-bottom:14px;}
+ .field label{display:block;font-size:13px;font-weight:600;margin-bottom:4px;}
+ .field .hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px;}
+ .field input,.field select{
+ width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;
+ font-size:14px;color:var(--ink);background:var(--white);
+ }
+ .field input:focus,.field select:focus,button:focus-visible,input:focus-visible{
+ outline:2px solid var(--navy);outline-offset:1px;
+ }
+ .inline{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+ .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+ .slider-val{font-weight:700;color:var(--navy);}
+ .controls{background:#eef4fb;border:1px solid #cfe0f3;}
+ .controls h2{color:var(--navy-dark);}
+ .prompt{
+ background:var(--amber-bg);border:1px solid var(--amber-line);border-left:4px solid #d4a63c;
+ border-radius:6px;padding:10px 12px;font-size:12.5px;color:var(--amber);margin-bottom:12px;
+ }
+ .prompt strong{color:#6b4b00;}
+ button.calc{
+ width:100%;background:var(--navy);color:#fff;border:none;padding:13px;font-size:15px;
+ font-weight:600;border-radius:8px;cursor:pointer;letter-spacing:.5px;margin-top:4px;
+ }
+ button.calc:hover{background:var(--navy-dark);}
+
+ .result{margin-top:26px;}
+ .headline{background:var(--navy);color:#fff;border-radius:12px;padding:26px 28px;text-align:center;}
+ .headline .big{font-size:42px;font-weight:700;line-height:1.1;}
+ .headline .sub{font-size:14px;opacity:.9;margin-top:6px;}
+ .headline .serial{font-size:12px;opacity:.75;margin-top:10px;letter-spacing:1px;font-variant-numeric:tabular-nums;}
+ .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px;}
+ @media(max-width:840px){.stat-row{grid-template-columns:1fr;}}
+ .stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;}
+ .stat .label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+ .stat .num{font-size:22px;font-weight:700;color:var(--ink);margin-top:4px;}
+ .stat .num.green{color:var(--green);}
+ table{width:100%;border-collapse:collapse;font-size:12px;background:#fff;}
+ table th,table td{padding:7px 9px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums;}
+ table th{background:var(--navy);color:#fff;text-align:right;font-weight:600;position:sticky;top:0;}
+ table th:first-child,table td:first-child{text-align:left;}
+ table th.spcol{background:var(--green);}
+ table td.spcol{background:var(--green-bg);color:var(--green);font-weight:700;}
+ tr.depleted td{color:#cf2e2e;}
+ .table-wrap{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:22px;}
+ .recon{
+ margin-top:12px;font-size:12.5px;border-radius:8px;padding:10px 12px;
+ background:var(--green-bg);border:1px solid #bcd9c2;color:var(--green);
+ }
+ .recon.bad{background:var(--red-bg);border-color:var(--red-line);color:var(--red);}
+ .warnbox{
+ margin-top:12px;font-size:12.5px;border-radius:8px;padding:10px 12px;
+ background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);display:none;
+ }
+ .warnbox.show{display:block;}
+ .warnbox ul{margin:6px 0 0;padding-left:18px;}
+ .note{font-size:12px;color:var(--muted);margin-top:22px;line-height:1.6;}
+ .note strong{color:var(--ink);}
+ .footer{margin-top:30px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;}
+ .toggle-table{background:none;border:1px solid var(--navy);color:var(--navy);padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:18px;}
+ .toggle-table:hover{background:var(--navy);color:#fff;}
+ .cust-row{display:grid;grid-template-columns:1.6fr 1fr .7fr .7fr .6fr;gap:8px;margin-bottom:8px;align-items:center;}
+ .cust-row input[type=text],.cust-row input[type=number]{padding:8px;font-size:13px;width:100%;border:1px solid var(--line);border-radius:6px;min-height:40px;}
+ .cust-head{display:grid;grid-template-columns:1.6fr 1fr .7fr .7fr .6fr;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+ .cust-chk{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;}
+ .cust-chk input{width:auto;min-width:20px;min-height:20px;}
+ .cust-chk .m-lab{display:none;font-size:12px;color:var(--muted);}
+ /* Narrow screens: the five-column row squeezes labels to the point of being
+ unreadable, so stack it instead and give each field a full-width tap target. */
+ @media(max-width:700px){
+ .cust-head{display:none;}
+ .cust-row{
+ grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+ border:1px solid var(--line);border-radius:8px;padding:10px;background:#fcfcfc;
+ }
+ .cust-row > input:nth-child(1),
+ .cust-row > input:nth-child(2){grid-column:1 / -1;}
+ .cust-chk{justify-content:flex-start;grid-column:1 / -1;}
+ .cust-chk .m-lab{display:inline;}
+ }
+
+ /* Blocking input errors - shown instead of a result, never alongside one */
+ .errbox{
+ background:var(--red-bg);border:1px solid var(--red-line);color:var(--red);
+ border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;display:none;
+ }
+ .errbox.show{display:block;}
+ .errbox strong{display:block;font-size:14.5px;margin-bottom:4px;}
+ .errbox ul{margin:6px 0 0;padding-left:18px;}
+ .field input.bad, .field input:invalid{border-color:#cf2e2e;background:#fff7f7;}
+
+ /* ---- Settings overlay ---- */
+ .overlay{
+ position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;
+ display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;
+ }
+ .overlay.show{display:flex;}
+ .modal{background:#fff;border-radius:12px;max-width:820px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);}
+ .modal .mhead{background:var(--navy);color:#fff;padding:18px 22px;border-radius:12px 12px 0 0;}
+ .modal .mhead h2{margin:0;font-size:18px;}
+ .modal .mhead p{margin:4px 0 0;font-size:12.5px;opacity:.9;}
+ .modal .mbody{padding:20px 22px;}
+ .modal .mfoot{
+ padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;
+ justify-content:flex-end;flex-wrap:wrap;background:var(--bg);border-radius:0 0 12px 12px;
+ }
+ .modal button{border:none;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13.5px;font-weight:600;}
+ .btn-primary{background:var(--navy);color:#fff;}
+ .btn-primary:hover{background:var(--navy-dark);}
+ .btn-plain{background:#fff;color:var(--navy);border:1px solid var(--navy) !important;}
+ .btn-plain:hover{background:var(--navy);color:#fff;}
+ .btn-danger{background:#fff;color:var(--red);border:1px solid var(--red-line) !important;}
+ .sfield{margin-bottom:12px;}
+ .sfield label{display:block;font-size:12.5px;font-weight:600;margin-bottom:3px;}
+ .sfield input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13.5px;}
+ .sfield .src{font-size:11px;color:var(--muted);margin-top:2px;}
+ .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+ @media(max-width:640px){.sgrid{grid-template-columns:1fr;}}
+ .brk-head,.brk-row{display:grid;grid-template-columns:1fr 1fr 34px;gap:8px;align-items:center;margin-bottom:6px;}
+ .brk-head{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+ .brk-row input{padding:6px 8px;font-size:13px;border:1px solid var(--line);border-radius:6px;width:100%;}
+ .brk-row .rm{background:#fff;color:var(--red);border:1px solid var(--red-line);border-radius:6px;cursor:pointer;padding:5px 0;font-weight:700;}
+ .locked input, .locked button.rm, .locked .addbrk{opacity:.55;pointer-events:none;}
+ .lockbar{
+ background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;
+ margin-bottom:16px;font-size:12.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+ }
+ .lockbar .pill{font-weight:700;padding:3px 10px;border-radius:20px;font-size:11.5px;}
+ .pill.locked-p{background:var(--green-bg);color:var(--green);}
+ .pill.unlocked-p{background:var(--amber-bg);color:var(--amber);}
+ details.adv{margin-top:14px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+ details.adv summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);}
+ textarea.code{
+ width:100%;height:90px;font-family:Consolas,Monaco,monospace;font-size:11.5px;
+ border:1px solid var(--line);border-radius:6px;padding:8px;margin-top:8px;resize:vertical;
+ }
+
+ /* ---- Client report ---- */
+ body.report-open header,
+ body.report-open .wrap{display:none;}
+ #reportView{max-width:960px;margin:0 auto;background:#fff;}
+ #reportView .rep-actions{
+ display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;background:var(--bg);
+ border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
+ }
+ #reportView .rep-actions button{border:none;padding:10px 18px;border-radius:6px;font-size:14px;cursor:pointer;font-weight:600;}
+ #reportView .rep-print{background:var(--navy);color:#fff;}
+ #reportView .rep-back{background:#fff;color:var(--navy);border:1px solid var(--navy) !important;}
+ #reportView .head{background:var(--navy);color:#fff;padding:26px 30px;}
+ #reportView .head .logo-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+ #reportView .head .csic-logo{height:44px;width:auto;background:#fff;border-radius:5px;padding:5px 9px;display:block;}
+ #reportView .head h1{margin:6px 0 0;font-size:24px;}
+ #reportView .head .meta{margin-top:10px;font-size:12.5px;opacity:.92;}
+ #reportView .head .serial{margin-top:6px;font-size:12px;opacity:.8;letter-spacing:1px;}
+ #reportView .rep-body{padding:26px 30px;font-size:13px;}
+ #reportView .stale{
+ background:var(--red-bg);border:1px solid var(--red-line);color:var(--red);
+ padding:12px 14px;border-radius:8px;font-size:12.5px;margin-bottom:16px;
+ }
+ #reportView h2{color:var(--navy);font-size:15px;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid #f0f0f0;padding-bottom:6px;margin:26px 0 12px;}
+ #reportView .basis{
+ font-size:12.5px;color:var(--ink);background:var(--bg);border-left:3px solid var(--navy);
+ padding:12px 14px;border-radius:0 6px 6px 0;margin:14px 0 18px;
+ }
+ #reportView .headline{background:var(--navy);color:#fff;border-radius:10px;padding:22px;text-align:center;}
+ #reportView .headline .big{font-size:38px;font-weight:700;}
+ #reportView .headline .sub{font-size:13px;opacity:.92;margin-top:4px;}
+ #reportView .stats{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;}
+ #reportView .stat{flex:1;min-width:150px;border:1px solid var(--line);border-radius:8px;padding:14px;text-align:center;}
+ #reportView .stat .l{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+ #reportView .stat .n{font-size:20px;font-weight:700;margin-top:3px;}
+ #reportView .stat .n.g{color:var(--green);}
+ #reportView .tbl-scroll{overflow-x:auto;}
+ #reportView table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px;}
+ #reportView th,#reportView td{padding:4px 5px;text-align:right;border-bottom:1px solid #e5e5e5;font-variant-numeric:tabular-nums;white-space:nowrap;}
+ #reportView th{background:var(--navy);color:#fff;}
+ #reportView th.spcol{background:var(--green);}
+ #reportView td.spcol{background:var(--green-bg);color:var(--green);font-weight:700;}
+ #reportView th:first-child,#reportView td:first-child{text-align:left;}
+ #reportView tr.dep td{color:#cf2e2e;}
+ #reportView .note{font-size:11px;color:var(--muted);margin-top:18px;line-height:1.55;}
+ #reportView .note strong{color:var(--ink);}
+ #reportView .foot{margin-top:22px;border-top:1px solid var(--line);padding-top:12px;font-size:10.5px;color:var(--muted);}
+ @page{margin:14mm 10mm;}
+ @media print{
+ #reportView .rep-actions{display:none;}
+ #reportView{max-width:none;}
+ body{background:#fff;}
+ }
+</style>
+
+<header>
+ <div class="logo-row"><img class="csic-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAARgAAACNCAYAAABsUmXIAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjdFOTk1QUZBOUM5RDExRThBQkNBOEYyQ0U0Q0UzNjc4IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjdFOTk1QUZCOUM5RDExRThBQkNBOEYyQ0U0Q0UzNjc4Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6N0U5OTVBRjg5QzlEMTFFOEFCQ0E4RjJDRTRDRTM2NzgiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6N0U5OTVBRjk5QzlEMTFFOEFCQ0E4RjJDRTRDRTM2NzgiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4RYo1WAAAVAUlEQVR42uydCbxNVRvGF0KkL8ks10xEkWRIIZkqMqQiSVIpXyoNCFE00qd5LmlSEkoZQjdT1EfGkggpblEyZap7fe/bfvbXanfusPc+5zr3nuf/+z2/c+89++yz97vXetZa71p73zzF2o0xhGSBoqJRojaifqKPGBKSGXkZApIJJWEs38JYqopmiWaIzmZ4CA2GBKGu6GnRZtEQUTHP+21FC0XJoo6iAgwZocGQzMpDF9ES0XLRDaJCmXymuWiKaL2or+hYhpHQYIiNmsJ1orWiSaKGAfaRJHpGtFF0i6gww0poMImNJm7vEm0SPSeqHoV9lhGNFX0nGiQqwjDTYEhiUV6k04ffi+4TlY7BdxQXPYDvGAEzIzQYkkvJI2osGi/aILotm3oXaizDRVtED4rK8VLQYEju4RhRD9EK0aeinubozPgcLxqIoZMmhevx0tBgSM5FeyeabNX1K6+JTouT48pnnGntZaLpoka8VDQYkrPobpxpY022JsXxkK2daLHoTVEJXjYaDInvodBloqWiN0xsErexopvoG+OsGC7OS0mDIfE1FNIl/OtEb4nqB9zPH1E6nqfQK/GLJoN1xbBOmY82znQ3ocGQo8QpohdEO0RPiioH3M8h0bOimlE6rjmiJqJzRdNERwIY5u3GyR09hvMkNBiSTWjl1VmYL0V9TPCl+fuMsxamknFuCdgQ5eNcIOogqi16SXTY5+f1FoX+xlldPAOGRWgwJAZoQrQ9Ku0i48zCBL12Pxtn4VsF0R2ilBgf+1cwwkoY+vwcYB96Y+U849xY2YrFgQZDooOuV+ktWiN6X9Q0xL6WYl9a0e8R7czmc9kmulNUVnS5caap/dLcOM+h0RzPRTBeQoMhPvkXehcbMbyoFWJf2urrQ6IaiMZhaHQ0+V30tuhM0fnGebaM3zyNrp2ZBpPqwnJMgyFZQ5/Bonck62rXh03wZfVaYd8zzq0B55n4ffrcXAx/dFXv68b/TJZ+Tu/+Xm2cqe78LEI0GPJP3JZcn8Giz1QJemOgVlBdA6OrdjVPsySHnP9K0ZWiKsZZHOi3l6U9PF2st9U4+aViLFI0mETHXhg3W9Q6xL4OGGequYZx7jtak0NjojdEDjDO6uOhop98fl5XAw9HD1BvrCzJYkaDSUQaIn8QZmGckip6VXSqcaaaN+aS+PxqnMdI6NoezUVt9/l5XUujN1bqWpobDZPBNJgEY5AJf/PhJzCWq4yz+jU3st84a3WqGWcG6ocARvMUhmCdWOxoMCTr6LqQdQlyrnuMs4ZGczRXBxgC1hHdzSJDgyEkI3Q18Cvo/ek6mPkMCQ2GkGij0/AfipoZJ5+lU9VpmXxmL8NGgyHEL5+LuhrnpkidOfoxne1SGSoaTKLAB2BHH33A1mDj3ApxvUmc/BQNhpBs5KDoeeMsvtPbCBYzJDQYQqKN5mQmG+fxFueY+L1dIldzDENAEoCFEGEPhhBCgyGEEBpMXFKAISA0GBIrCjMEhAZDCCE0GEIIDYYQQoMhhJBowIV2JNrovySpG4fHtUI0lZeHBpMI5OabHS+L0+N6hQbDIRIhhAZDCCE0GEIIDYaQmPMHQ0CDISRW7GMIaDCJQkGGgCQCnKY+OhSK0+MaFsWW/jfR71HYjz6su4HoJhYbGgzJ2YyK0+PKx0vDIRIhhNBgCCE0GEKiCf+zIw0mYcjDEGQ7aQwBDSZROIEhIDQYQgihwRBCaDCEEBoMIbkQ3uxIgyEkZvBmRxpMQsAbHQkNhsSMQgwBocEQQggNhhBCgyGE0GAIyaXsZghoMITEiiMMAQ0mEdBHST5kwq/LuFk0QlQuF8eqgugB0f0sNjQYkjX0ObWDUHnuEe0KuB/997PDRd+JJojq5aIY1RKNF21ArMqE2Jc+B2aMaDqLHg0mkdiJHkhF0WDRzwH3o8+r1X84v0z0nqhRDo6JPtx7smi1qKcJ98zoFNFdoiTRHaLtLHI0mEREk48PiiqJBog2BdyPPsSqg2ixaLaoeQ6KQQvRR6LPRZ1Clst1ousQzwdC9BAJDSZXoTmZsaIqootES0Ls63xRsuhTUTsTn0/Q02O6GIb4sahViH3pvzaZKGqJ4dULokMsUjQY8k90tuNDUWNRa9EnIfbVGLkHHT51MfHx7z/yi7qLVommhhzSHRA9LaohugxGxUdj0mBIFpmN4UMz0cwQ+9EE8CTjJISHGCdBnN2UwJBlq+gNUe0Q+/rFOP/DSRPl/UTfsqjQYEhw5mOo0xitftA1HeVQMTXPo1O/xbPh2DXJ+hjMbRCMJii6D52er2ic/0K5g0WDBkOih+ZlNAlaX/R2iOGA9mAGw2g071MmBsd6imicaL2ovwl3F/lKUQ9RVdHjhs92ocGQmLLcOFPTTUQLQuyniOgW46w3uT1K5UH3+R/RGlEvUYGQxnIhhng6rOJT6WgwJBv5THSucfI0c0Psp7BotGgtTCF/gH2cgCGQmtWtJlxCealxkrbaU5tuuMyfBkOOKp8YZ2paczQzQlTI6hjWuCtoS2fhMzot/JRos3GSuKUCfrce8yychy6402nnVF5aGgyJHzRHcwFafk0GB83RJMEsNooexe9eGoqmYCh0owk+M/UHhj86DGobsidGaDAkG9AcjSaD64jeCtET0MSsztpoovZ54yRZdTHbHJhZRxN8EZ8mah/HPjWBu5KXLfeRp1i7MYxC7kcrsa5/ucIEy6/Yw5iwq4J/gFnpArlfeGnYgyE5H82pXC0qacLdWBnGXHS2qz2GWyNpLjQYkvvQG//0xkpdAaszPSkx/j7NAend0TqdrrNdHxjOCNFgSK5nv3GSt5VFN4i2RHn/eqOh3nCoM0x6D9RihpwGQxKPg6JnRdVEvTGUikYPSR+VoI9MWMcQ02AIOWyc9S81jXOn81c+P6+zTPpQJ82vDM6GoRehwZAciK5J0cdv6vS2zjhtzGT7rTAkXaCn05F7GUJCgyGZocnZN43zSAVdB+PN0Ww2zg2MNWBIhNBgiG/0gU66GE5zNJoMnomejf7+hHH+QwIh6XIMQ0CygOZonoUIYQ+GEEKDIYTQYAghhAZDCIkjmOTNWdeqKcPw51qdhQwDDYZEF33WbTLD8OftCCcyDBwiEUJoMIQQQoMhhNBgCCGEBkMIocEQQmgwhBBCgyGE0GAIITkeruTNOeh/QmzBMPx5qwChwZAYVKxPGAbCIRIhhNBgCCE0GEIIDYYQQmgwhBAaDCGEBkMIITQYQggNhhBCgyGEEBoMIYQGQwihwRBCCA2GEEKDIYTQYAghxC+RHjiVT3SaqILoiOh70RrR4QjblhWdIcojWi3azJDG7XWuaJz/b/2LaKsoLcFjcpyoPMq7xmMXi0lsezBaCO9AsL8QTRFNFS1DoZwAMzEwlAdF34mmid4XbRRNyuT7OsK0RjD02UItXLfdovWi5aItop24Vp1y+PnVRXkam8XttdxehfKtjyBdi8bzV9FXoodFlRO0rGhsTo32qMbtwRQWvSc6X3RANBHGkiqqJGopulz0NS5Od9FA0X9FL2AfF2E7Eh90E70sOla0DQ2BNhTFRPVEXXC9piRIPLSMvyO6AKakZvsljEZ762ejgd2foA3gdaJnRf1FT0TbYMbBXNQwLkEr56UFLpLSHq/tUGgNjKZdDg+yDg1XxemxlRAdEu3JwrZtRK+hgdAC84z558Oy64iuTaAK9DrMRa9vDwzpbQrCdBMhL3kChsh7rb99JpqD16j2YLSbfClMpQ26i5FItn52x+86ZJpt/X1GDg76IJx/izg1l7miDlkwGM0pPIlXHQ68kc52q2E+iUB7lPNNoubplHE17zcTIBYlUE8v8RjMClGrWORg7sTPozMwFy+TrNcrMX4LyjSYVwuY1Q8IwCl4fyDeP93zuWvx93Px+5nY1w8YT98rKmBtXw5Dv+/xvlbC0pa5PIAxfTJ0iWWsI0V90Pp9K7ob59xA9LFoh2iWqIrnGCugJ7Eex6XD0NrW+22x/04YzmxBTmCwFdOT8R11kE9xjyc9tAJVFS3OwFzS42TE4SN8z8tWfF164b2qERqgkZ7fNTdyPeKm+bpHRcdb2xQXjcd5f41ecJL1flHs8wvET/d5XoAy1guvw32UcZcLEYe5uMbDcdw2Y1H2TkBvcbNx8pdJ1jV29a7oNtGJEb5Lh69DUf4/xpClboS8UzLOqQ2GeTryaI0RxoMo3ymiz9F58DZU9a2y5OavmuL3tp7v03i/gvf0HIcYZ3LHZgKkDeAS1DEt9yXyomIqC3wEfTICobMSrxrn32nUDmgwTVEpJqPyfoiTmgWDWIT3b/X0vPT7ayGIWtHniRrh87qfYaLnrM+Mh2kswEXpje3bwiTd/RaFCloVdoDoZuxbzeQeVMKZKPjzcIHftb5PzWuhqLNoqegDURPRfKsSlcb+30KBe9s4sxv3i/pZhbcUfv4Xju24DOLpFsiZPq/DOejVaINTEte2O67tUGu7ijjmIhGMrbbn9xtFt6PCrEMMp1vm+ZioJ+KzDJXhPGvIMhfffdCqsLNQZvzgNk4f+vzck7hu3XC+lZGfUcOs6Yn5OTD0hkgbXIxGwb3GFWBMzURj0JDY+6iKvNBIxPh4NGoam2s8ptsc+9eKvx3np2X7Fly/XfhcdZSts/DZR6xG1S1LRSyzb269r4zCNeiMulgff1tt+YZBPeqC+rYIjZsOQ9/Ia+Vh9voM/n1oefeglVsSwW39oAWtL1q811CYTkMl1cJ5mRWM5nh/AgrfUCQzm+Hz7THm1n1WwmeqwByuEHVFD2kdKuKF2GYpEqD1PK3/FlykwRjHpyFn1QffcQkK7+nW9/VDj+BqFNC+OK4TkVCzeRqxvAPnkGblubpax3Ihjm1ABnF0ewh7fMReK/yLiO8FuI5q2jqrsBWGGqQB0d5CY/RCdb8/wRwq4v0axln+cDmuS1X0VgwK7BkwFk3A/hsF+RBMyw9F8brTx2fa4houxXVU46iG7y4D8/HmNbbgmOujgtmGNgCGUwLlqCyMxuUZlOnrYTwNUOZ+Ez2Oz9lcADNugZ7MCIxIuqEha49evl7bllYd85al9PJwDdBb+QZ152zE4W70tF70bJ8GH7gNDYX6QUs9oJ+xQaUABeh9mMBstKoTPcMSP9g9qGV4LYPXl2Ag3fD7lVZyOg8CvQbfXRdagYC3t/ZfEsO6JBSGtVk8Nu2+H7AK6Tb8vNzaZqE1zDAYz+oMxQbrmA7C5Lwt8DyPmaXgWIOw02qRskojtHYvoofgoj3Bm6yC65e1Vvn6w0qgl7XOuwAqYnXEZpXVNTdobE5H/Mrhfb89mO1WjzGr9MBrb/PXRIbbC5iDil3O+vsRtO4u6Q1PdbuHYKSt0CCUxvnqfp+3tv0CjWdha8ju8o5VfpNRJp9AL9h73gUDXDu3jl2H6+KayEj0ik6HYbqkIBVgH3vevDAFg1YkCDq2bochQzW4aVgOWAlLg7H5PnSxk9Cb0a77SrQcRVCxx1nqAZNxg3sThmGdYRj9QhxfpH9fetBzzKXw80ue49IewY+Z7P/3EMe2CK8dfOTGauD14wjvuYZzShSu6294zY/XwRi6no8GYqh1zCfhdZgnfoUwxvfDErxe7OMzNVFBV0d47yMcZzXrb7uthiczjuA6aRzKI/55zd8nTLzxr+75+4YI2+5GwzIMPa93QlyrmhmkTubi9dQMPn/YTfKOQKunTt0xky91A3q25++paGmMx9WjxS4k2k7FyRVEt9HAeA6jgNaLoNFW8LtgKLIDXdxuJnbsQYVqEOGYLo/h9y5DXqpOFoYS+WGC+zy9L5skjznYEwRhOYxkZSv0lrR17O/5vq7pXFc/PIdKfa8niRyJglZ5KepJShtPGT8Q4tzLWuXETU+Uj7Cd+7f9WdhndeQXz0Vj3DbE8e3Ga8kMzn93ZjvJi8rWBxdgEsaF1TyZ/u5I3Ljdtz4wFDdIRTC+M8hgx4LH0EXTcfomDM/c3sRsJNm83cgmVjKqM1qdqVYvq4unx1DaakGPDXm8M6zWxJsP6OxzX0esxJybjM6fwfZ9USAfghGXipCn6YnhxvEw7X3IE1S0tjvWyhNM8wzBaljb1QsYo644lznmr9mqDp4k9eueQq4GcJXP79G1HU9hP4sRf+9tMtpDexRyE8I6fHvYs+0ZSLqmWPkiv9TD0N2dHVuJkUAv5G/svM4oHwnq/jjHK9BDinQ7yH6rh+16QKRJg2lWvcvvyc30Q6O/KLMDcgM3BcOOF5CkuQ0Hkupx8HF43YGEZHcE6CQc5FTjbzbKDxux/84oLKnWewMxLp+I7vBPqAA1kXBaiqHKKHRv3az6Kmv8uA2FbDpalNLmn1O0fngIFehuXPAvEaMm6PZO9rGvFXidgMrSAtqczvbLkcSbiKHhjUhob0cBrIZCkwbtwXYvoYGYgyFfE7RWk8xfSxNmwdQfQf6tVIge2cOI0wfWEOxL61yvxTX4BuUqH5KtezC08sMtqEwai3fRQ9qA14pWY+kmL5+ECfTF0GoRDL4FYtbb51BWp/+bwTQuxT5utkYA1yAOS5BT2YW8jNYtnUn8NAvfcdCqD7MtI66Dn8dbeUM17vmIb6RE7+vmrzVyDfH9SSgTaaj7mU4k5CtUrbWdkHsOFe03fDgFXe4JuEBuD2YO3DcNLf56XJCBnorvpQySQ/NQ6d1s9q8YAh22uuU10UuxK5EeW2v0oA5Zf98BY9BCUguf34bh0Zs4pl9hOi0xjn8eXeZU9BDmI9FdHxn7qcjzdMRFsZOfrRGj16zurWbaK6PwbsPFfgcFxD2fvChE96AnkN55tsY+3Eq9GobQEBXxc1yTQxnEejNiugdJwpNhFsfAWDUJeT1yQq6Jzcd2Z+FcNOF8P3Ilbmv4Cz7fCBUmBb2hxp44dcSwdZp1TA0RezdG22F2WpGKIZ4DUXGPIH6HYIp10NgtQAO4FZW1KSp/ZhXwCMrIbMSgEMpLKZSNZPTWRsNAU5HMPIxhSl1cyzmorAutfTfF9uMifG9dxOJ7nH9NHG9P8/dVs5tQNkqi110FdXKI+ftsU3FcH7sO2YnV0zA0qoNeT3lcy2T0lNbiWN1ZwlWI+3Gom+6SAndEsxejhgbo0c2E6Xrrww7z94WK+v0l8xRrN8YQQmJGLxhPJzRaCQWfB0MIocEQQmgwhBDyf/4nwABLG3EX7PLzLAAAAABJRU5ErkJggg==" alt="CS Investment Counsel Corporation" /></div>
+ <h1>Lifetime Spending Power Calculator</h1>
+ <p>Works out the level annual spending a client can sustain in today's dollars, drawing on registered and non-registered assets, pension and government benefits, with the accounts running down to zero at the chosen life expectancy.</p>
+</header>
+
+<div class="wrap">
+
+ <div class="banner" id="statusBanner"></div>
+ <div class="banner" id="storageBanner"></div>
+ <div class="errbox" id="inputError"></div>
+
+ <div class="toolbar">
+ <button id="newClientBtn" type="button">Start new client</button>
+ <button id="saveScenarioBtn" type="button">Save scenario</button>
+ <select id="scenarioList" aria-label="Saved scenarios"><option value="">Load saved scenario…</option></select>
+ <button id="deleteScenarioBtn" type="button">Delete</button>
+ <button id="exportScenariosBtn" type="button">Back up all</button>
+ <button id="importScenariosBtn" type="button">Restore</button>
+ <input type="file" id="importFile" accept="application/json,.json" style="display:none;" />
+ <span class="spacer"></span>
+ <span class="state" id="workState">New client</span>
+ <button id="settingsBtn" type="button">Annual settings</button>
+ </div>
+
+ <div class="grid">
+ <div>
+ <div class="card">
+ <h2>Client &amp; Income</h2>
+ <div class="inline">
+ <div class="field">
+ <label for="clientName">Client / prepared for</label>
+ <input type="text" id="clientName" value="" placeholder="e.g. Jane Smith" />
+ </div>
+ <div class="field">
+ <label for="advisorName">Prepared by</label>
+ <input type="text" id="advisorName" value="" placeholder="Advisor name" />
+ </div>
+ </div>
+ <div class="inline">
+ <div class="field">
+ <label for="curAge">Current age</label>
+ <input type="number" id="curAge" value="65" min="40" max="100" />
+ </div>
+ <div class="field">
+ <label for="income">Employment income ($/yr, before tax)</label>
+ <input type="number" id="income" value="0" step="1000" min="0" />
+ </div>
+ </div>
+ <div class="field">
+ <label for="incomeStop">Employment income stops at age</label>
+ <input type="number" id="incomeStop" value="65" min="40" max="100" />
+ <div class="hint">This income rises with inflation until it stops. Set it to the current age if there is none.</div>
+ </div>
+ </div>
+
+ <div class="card">
+ <h2>Defined-Benefit Pension</h2>
+ <div class="prompt">
+ <strong>Ask the client</strong> what annual pension they expect to receive in today's
+ dollars, and at what age it starts. Take the figure from their most recent pension
+ statement rather than estimating it.
+ </div>
+ <div class="trio">
+ <div class="field">
+ <label for="pensionAmt">Expected pension ($/yr)</label>
+ <input type="number" id="pensionAmt" value="0" step="1000" min="0" />
+ </div>
+ <div class="field">
+ <label for="pensionStart">Starts at age</label>
+ <input type="number" id="pensionStart" value="65" min="50" max="100" />
+ </div>
+ <div class="field">
+ <label for="pensionIndex">Indexing</label>
+ <select id="pensionIndex">
+ <option value="full">Fully indexed</option>
+ <option value="partial">50% indexed</option>
+ <option value="none" selected>Not indexed</option>
+ </select>
+ </div>
+ </div>
+ </div>
+
+ <div class="card">
+ <h2>Government Benefits</h2>
+ <div class="prompt">
+ <strong>Ask the client</strong> whether they will qualify for the <em>full</em> CPP retirement
+ pension. Full CPP requires contributions at or near the maximum for roughly 39 years, and most
+ clients receive considerably less. If they will not receive the full amount, enter the actual
+ first-year figure from their Service Canada Statement of Contributions.
+ </div>
+ <div class="inline">
+ <div class="field">
+ <label for="cppFull">Will the client receive full CPP?</label>
+ <select id="cppFull">
+ <option value="yes">Yes &mdash; use maximum</option>
+ <option value="no" selected>No &mdash; enter actual amount</option>
+ </select>
+ </div>
+ <div class="field">
+ <label for="cppAmt">CPP first-year amount ($/yr)</label>
+ <input type="number" id="cppAmt" value="0" step="500" min="0" />
+ <div class="hint" id="cppHint"></div>
+ </div>
+ </div>
+ <div class="inline">
+ <div class="field">
+ <label for="cppStart">CPP starts at age</label>
+ <input type="number" id="cppStart" value="65" min="60" max="70" />
+ <div class="hint" id="cppStartHint"></div>
+ </div>
+ <div class="field">
+ <label for="oasInclude">Include OAS?</label>
+ <select id="oasInclude">
+ <option value="yes" selected>Yes</option>
+ <option value="no">No</option>
+ </select>
+ </div>
+ </div>
+ <div class="inline">
+ <div class="field">
+ <label for="oasStart">OAS starts at age</label>
+ <input type="number" id="oasStart" value="65" min="65" max="70" />
+ <div class="hint" id="oasStartHint"></div>
+ </div>
+ <div class="field">
+ <label for="oasClawback">Apply OAS recovery tax (clawback)?</label>
+ <select id="oasClawback">
+ <option value="yes" selected>Yes</option>
+ <option value="no">No</option>
+ </select>
+ <div class="hint" id="oasHint"></div>
+ </div>
+ </div>
+ </div>
+
+ <div class="card">
+ <h2>Assets</h2>
+ <div class="field">
+ <label for="rrspAssets">RRSP / RRIF ($)</label>
+ <input type="number" id="rrspAssets" value="500000" step="5000" min="0" />
+ <div class="hint">Withdrawals are fully taxable. The tool applies the RRIF minimum from age 72, and there is no maximum.</div>
+ </div>
+ <div class="field">
+ <label for="liraAssets">LIRA / LIF ($)</label>
+ <input type="number" id="liraAssets" value="0" step="5000" min="0" />
+ <div class="hint">These funds are locked in, so each year's withdrawal must fall between the minimum <em>and</em> the Ontario LIF <strong>maximum</strong>.</div>
+ </div>
+ <div class="field">
+ <label for="nonRegAssets">Non-registered ($)</label>
+ <input type="number" id="nonRegAssets" value="250000" step="5000" min="0" />
+ <div class="hint">This box covers TFSA and taxable accounts together.</div>
+ </div>
+ <div class="field">
+ <label for="nonRegYield">Taxable yield on non-registered (% of balance/yr)</label>
+ <input type="number" id="nonRegYield" value="0" step="0.1" min="0" max="10" />
+ <div class="hint">
+ This is the share of non-registered growth taxed each year. At <strong>0%</strong> the account
+ grows entirely tax-free, which makes spending power look higher than it should for a taxable account.
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <div>
+ <div class="card controls">
+ <h2>Assumptions</h2>
+ <div class="field">
+ <label for="inflation">Inflation rate: <span class="slider-val" id="inflVal">2.5%</span></label>
+ <input type="range" id="inflation" min="0" max="8" step="0.1" value="2.5" />
+ </div>
+ <div class="field">
+ <label for="lifeExp">Life expectancy (plan-to age): <span class="slider-val" id="leVal">95</span></label>
+ <input type="range" id="lifeExp" min="70" max="105" step="1" value="95" />
+ </div>
+ <div class="field">
+ <label for="retRate">Expected investment return: <span class="slider-val" id="retVal">5.0%</span></label>
+ <input type="range" id="retRate" min="0" max="10" step="0.1" value="5.0" />
+ </div>
+ <div class="field">
+ <label for="lifRate">LIF maximum reference rate (%)</label>
+ <input type="number" id="lifRate" value="3.49" step="0.01" min="0" max="15" />
+ <div class="hint">This rate sets the Ontario LIF maximum. Ontario resets it every January, and you can update it in Annual settings.</div>
+ </div>
+ <div class="field" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px 14px;">
+ <label style="color:var(--navy);">Income tax &mdash; automatic</label>
+ <div class="hint" id="taxYearNote"></div>
+ </div>
+ </div>
+
+ <div class="card">
+ <h2>Target Income Period</h2>
+ <div class="prompt">
+ Use this when a client has a set spending objective for part of the plan, such as
+ travelling for ten years at $200,000 a year. The tool funds that target first, then
+ works out a level spending amount for the <em>remaining</em> years.
+ </div>
+ <div class="field">
+ <label for="targetOn">Use a target income period?</label>
+ <select id="targetOn">
+ <option value="no" selected>No</option>
+ <option value="yes">Yes</option>
+ </select>
+ </div>
+ <div class="trio">
+ <div class="field">
+ <label for="targetAmt">Target income ($/yr)</label>
+ <input type="number" id="targetAmt" value="200000" step="5000" min="0" />
+ </div>
+ <div class="field">
+ <label for="targetFrom">From age</label>
+ <input type="number" id="targetFrom" value="65" min="40" max="105" />
+ </div>
+ <div class="field">
+ <label for="targetTo">To age</label>
+ <input type="number" id="targetTo" value="74" min="40" max="105" />
+ </div>
+ </div>
+ <div class="field">
+ <label for="targetIndexed">Index the target to inflation?</label>
+ <select id="targetIndexed">
+ <option value="yes" selected>Yes &mdash; keep real value</option>
+ <option value="no">No &mdash; flat dollars</option>
+ </select>
+ </div>
+ </div>
+
+ <div class="card">
+ <h2>Other Income &amp; Expenses</h2>
+ <div class="hint" style="margin-bottom:12px;">
+ Give each line a label. Enter a <strong>positive</strong> figure for income and a
+ <strong>negative</strong> figure for an expense, in today's dollars. Only the lines you label
+ and give an amount to will appear in the projection.
+ </div>
+ <div style="font-size:12px;font-weight:600;color:var(--navy);margin:12px 0 6px;">Taxable (4)</div>
+ <div class="cust-head"><div>Label</div><div>$/yr</div><div>From age</div><div>To age</div><div>Index</div></div>
+ <div id="taxableRows"></div>
+ <div style="font-size:12px;font-weight:600;color:var(--navy);margin:18px 0 6px;">Non-taxable (4)</div>
+ <div class="cust-head"><div>Label</div><div>$/yr</div><div>From age</div><div>To age</div><div>Index</div></div>
+ <div id="nonTaxableRows"></div>
+ </div>
+
+ <div class="card">
+ <button class="calc" id="calcBtn">Calculate Spending Power</button>
+ <div class="hint" style="margin-top:10px;">The result is shown <strong>after tax, in today's dollars</strong>.</div>
+ </div>
+ </div>
+ </div>
+
+ <div class="result" id="resultBlock" style="display:none;">
+ <div class="headline">
+ <div class="big" id="rSpend">$0</div>
+ <div class="sub" id="rSub">Sustainable annual spending power</div>
+ <div class="serial" id="rSerial"></div>
+ </div>
+ <div class="stat-row">
+ <div class="stat"><div class="label">Lifetime total (today's $)</div><div class="num" id="rLifetime">$0</div></div>
+ <div class="stat"><div class="label">Years funded</div><div class="num" id="rYears">0</div></div>
+ <div class="stat"><div class="label">Spending at age <span id="rNomAge">95</span> (actual $)</div><div class="num green" id="rNominal">$0</div></div>
+ </div>
+
+ <div class="warnbox" id="warnBox"></div>
+ <div class="recon" id="reconBox"></div>
+
+ <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+ <button class="toggle-table" id="toggleTable">Show year-by-year cash flow</button>
+ <button class="toggle-table" id="viewToggle">Switch to condensed view</button>
+ <button class="toggle-table" id="reportBtn" style="background:var(--navy);color:#fff;">Create client report</button>
+ <label style="font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:18px;">
+ <input type="checkbox" id="repDetailed" style="width:auto;" /> Use detailed table in the client report
+ </label>
+ </div>
+ <div class="table-wrap" id="tableWrap" style="display:none;">
+ <table id="projTable"><thead></thead><tbody></tbody></table>
+ </div>
+
+ <div class="note" id="methodNote"></div>
+ <div class="footer" id="appFooter"></div>
+ </div>
+</div>
+
+<!-- ============ ANNUAL SETTINGS ============ -->
+<div class="overlay" id="settingsOverlay">
+ <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+ <div class="mhead">
+ <h2 id="setTitle">Annual Settings</h2>
+ <p>Government figures the calculator relies on. These change every January.</p>
+ </div>
+ <div class="mbody">
+ <div class="lockbar">
+ <span class="pill locked-p" id="lockPill">Locked</span>
+ <span id="lockText">Values are locked to prevent accidental changes.</span>
+ <button class="btn-plain" id="unlockBtn" type="button" style="padding:6px 12px;font-size:12.5px;">Unlock to edit</button>
+ </div>
+
+ <div id="setForm" class="locked">
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setTaxYear">Tax year these figures apply to</label>
+ <input type="text" id="setTaxYear" />
+ </div>
+ <div class="sfield">
+ <label for="setValidThrough">Valid through (review by this date)</label>
+ <input type="date" id="setValidThrough" />
+ <div class="src">This is usually 31 December of the tax year.</div>
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setUpdatedBy">Updated by</label>
+ <input type="text" id="setUpdatedBy" placeholder="Your name" />
+ </div>
+ <div class="sfield">
+ <label for="setLifRate">LIF maximum reference rate (%)</label>
+ <input type="number" id="setLifRate" step="0.01" />
+ <div class="src">FSRA Ontario and OSFI publish this rate, and it is reset every January.</div>
+ </div>
+ </div>
+
+ <h3 style="font-size:13px;color:var(--navy);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.8px;">Government benefits</h3>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setCppMax">CPP maximum ($/yr at age 65)</label>
+ <input type="number" id="setCppMax" step="0.01" />
+ <div class="src">Take the monthly figure from the CPP and OAS maximum amounts on Canada.ca and multiply it by 12.</div>
+ </div>
+ <div class="sfield">
+ <label for="setOas65">OAS ($/yr, ages 65&ndash;74)</label>
+ <input type="number" id="setOas65" step="0.01" />
+ <div class="src">Take the monthly figure from the OAS payment amounts on Canada.ca and multiply it by 12. Note that OAS is indexed quarterly.</div>
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setOasUplift">OAS increase at age 75 (%)</label>
+ <input type="number" id="setOasUplift" step="0.1" />
+ </div>
+ <div class="sfield">
+ <label for="setClawThresh">OAS recovery tax threshold ($)</label>
+ <input type="number" id="setClawThresh" step="1" />
+ <div class="src">This is the net income above which OAS starts to be clawed back.</div>
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setClawRate">OAS recovery tax rate (%)</label>
+ <input type="number" id="setClawRate" step="0.1" />
+ </div>
+ </div>
+
+ <h3 style="font-size:13px;color:var(--navy);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.8px;">Basic personal amount</h3>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setFedBpa">Federal BPA ($)</label>
+ <input type="number" id="setFedBpa" step="1" />
+ </div>
+ <div class="sfield">
+ <label for="setFedBpaRate">Federal credit rate (%)</label>
+ <input type="number" id="setFedBpaRate" step="0.01" />
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setOnBpa">Ontario BPA ($)</label>
+ <input type="number" id="setOnBpa" step="1" />
+ </div>
+ <div class="sfield">
+ <label for="setOnBpaRate">Ontario credit rate (%)</label>
+ <input type="number" id="setOnBpaRate" step="0.01" />
+ </div>
+ </div>
+
+ <h3 style="font-size:13px;color:var(--navy);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.8px;">Age amount (65 and over)</h3>
+ <div class="src" style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+ The age amount is reduced by the percentage below for every dollar of net income above the threshold.
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setFedAgeAmt">Federal age amount ($)</label>
+ <input type="number" id="setFedAgeAmt" step="1" />
+ </div>
+ <div class="sfield">
+ <label for="setFedAgeThresh">Federal income threshold ($)</label>
+ <input type="number" id="setFedAgeThresh" step="1" />
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setOnAgeAmt">Ontario age amount ($)</label>
+ <input type="number" id="setOnAgeAmt" step="1" />
+ </div>
+ <div class="sfield">
+ <label for="setOnAgeThresh">Ontario income threshold ($)</label>
+ <input type="number" id="setOnAgeThresh" step="1" />
+ </div>
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setAgeReduction">Reduction rate (%)</label>
+ <input type="number" id="setAgeReduction" step="0.1" />
+ </div>
+ </div>
+
+ <h3 style="font-size:13px;color:var(--navy);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.8px;">Pension income amount</h3>
+ <div class="src" style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+ This credit applies to a defined-benefit pension at any age, and to RRIF and LIF withdrawals
+ from age 65. CPP and OAS do not qualify.
+ </div>
+ <div class="sgrid">
+ <div class="sfield">
+ <label for="setFedPensionAmt">Federal maximum ($)</label>
+ <input type="number" id="setFedPensionAmt" step="1" />
+ </div>
+ <div class="sfield">
+ <label for="setOnPensionAmt">Ontario maximum ($)</label>
+ <input type="number" id="setOnPensionAmt" step="1" />
+ </div>
+ </div>
+
+ <h3 style="font-size:13px;color:var(--navy);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.8px;">Combined Federal + Ontario tax brackets</h3>
+ <div class="src" style="font-size:11px;color:var(--muted);margin-bottom:8px;">
+ Enter the lowest bracket first, and leave the final upper limit blank to mean "and above".
+ These come from the TaxTips.ca combined marginal rates, "other income" column.
+ </div>
+ <div class="brk-head"><div>Income up to ($)</div><div>Combined rate (%)</div><div></div></div>
+ <div id="brkRows"></div>
+ <button class="btn-plain addbrk" id="addBrkBtn" type="button" style="padding:6px 12px;font-size:12.5px;margin-top:6px;">Add bracket</button>
+
+ <details class="adv">
+ <summary>Share these settings with a colleague</summary>
+ <p style="font-size:12px;color:var(--muted);margin:8px 0 0;">
+ Settings save on this computer only. To copy them to another machine, press
+ <strong>Copy code</strong> and send it over; the other person pastes it below and presses
+ <strong>Apply code</strong>.
+ </p>
+ <textarea class="code" id="setCode" placeholder="Settings code appears here…"></textarea>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;">
+ <button class="btn-plain" id="copyCodeBtn" type="button" style="padding:6px 12px;font-size:12.5px;">Copy code</button>
+ <button class="btn-plain" id="applyCodeBtn" type="button" style="padding:6px 12px;font-size:12.5px;">Apply code</button>
+ </div>
+ </details>
+ </div>
+ </div>
+ <div class="mfoot">
+ <button class="btn-danger" id="restoreDefaultsBtn" type="button">Restore built-in defaults</button>
+ <span style="flex:1;"></span>
+ <button class="btn-plain" id="cancelSetBtn" type="button">Cancel</button>
+ <button class="btn-primary" id="saveSetBtn" type="button">Save &amp; lock</button>
+ </div>
+ </div>
+</div>
+
+<div id="reportView" style="display:none;"></div>
+
+<script>
+/* ==================================================================
+ CS INVESTMENT COUNSEL - LIFETIME SPENDING POWER CALCULATOR
+
+ Built with Anthropic's Claude Opus 5 (model id: claude-opus-5) via Claude Code.
+
+ Single self-contained HTML file: no build step, no server, no dependencies.
+
+ The government figures that change every January are NOT buried in this code -
+ they live in the "Annual Settings" panel in the tool itself, and are stored in
+ the browser. DEFAULT_SETTINGS below is the fallback used on a fresh machine and
+ by "Restore built-in defaults", so it is still worth updating here when a new
+ year's figures are known.
+================================================================== */
+
+const APP_VERSION = '1.2.1';
+
+/* Gate on the settings panel. This prevents accidental edits - it is NOT
+ security, since anyone can read it by viewing the page source. No confidential
+ data is stored in this tool. */
+const SETTINGS_PASSCODE = 'csic';
+
+/* ---- Built-in defaults (2026) ---- */
+function DEFAULT_SETTINGS(){
+ return {
+ taxYear:'2026',
+ validThrough:'2026-12-31',
+ updatedBy:'built-in default',
+ updatedOn:'',
+ lifRate:3.49,
+ cppMax:1507.65*12,
+ oas65:751.97*12,
+ oasUplift:10,
+ clawThresh:95323,
+ clawRate:15,
+ fedBpa:14829, fedBpaRate:14,
+ onBpa:12989, onBpaRate:5.05,
+ /* Age amount: available from 65, reduced by 15% of net income above the
+    threshold. Federal and Ontario are tested separately. */
+ fedAgeAmt:9208, fedAgeThresh:46432,
+ onAgeAmt:6342, onAgeThresh:47210,
+ ageReduction:15,
+ /* Pension income amount: applied to the lesser of eligible pension income
+    and the maximum below. */
+ fedPensionAmt:2000,
+ onPensionAmt:1796,
+ brackets:[
+ {upTo:53891, rate:19.05},
+ {upTo:58523, rate:23.15},
+ {upTo:94907, rate:29.65},
+ {upTo:107785, rate:31.48},
+ {upTo:111814, rate:33.89},
+ {upTo:117045, rate:37.91},
+ {upTo:150000, rate:43.41},
+ {upTo:181440, rate:44.97},
+ {upTo:220000, rate:48.26},
+ {upTo:258482, rate:49.82},
+ {upTo:null, rate:53.53}
+ ]
+ };
+}
+
+const LS_SETTINGS = 'csic_settings_v1';
+const LS_SCENARIOS = 'csic_scenarios_v1';
+const LS_DRAFT = 'csic_draft_v1';
+
+/* Browser storage is blocked in private browsing and, in some browsers, when the
+ file is opened straight from disk. Saving would then fail silently and an
+ advisor could believe work was stored when it was not - so detect it up front
+ and disable the save controls rather than pretending they worked. */
+const STORAGE_OK = (function(){
+ try{ localStorage.setItem('_csic_probe','1'); localStorage.removeItem('_csic_probe'); return true; }
+ catch(e){ return false; }
+})();
+
+let SETTINGS = loadSettings();
+
+function loadSettings(){
+ try{
+ const raw = localStorage.getItem(LS_SETTINGS);
+ if(!raw) return DEFAULT_SETTINGS();
+ return Object.assign(DEFAULT_SETTINGS(), JSON.parse(raw));
+ }catch(e){ return DEFAULT_SETTINGS(); }
+}
+function persistSettings(s){
+ try{ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }catch(e){}
+}
+
+/* Derived figures */
+function bpaCredit(){
+ return SETTINGS.fedBpa*(SETTINGS.fedBpaRate/100) + SETTINGS.onBpa*(SETTINGS.onBpaRate/100);
+}
+
+/* ---- RRIF / LIF minimum factors (CRA prescribed; stable across years) ---- */
+const RRIF_FACTORS = {
+ 71:0.0528,72:0.0540,73:0.0553,74:0.0567,75:0.0582,76:0.0598,77:0.0617,
+ 78:0.0636,79:0.0658,80:0.0682,81:0.0708,82:0.0738,83:0.0771,84:0.0808,
+ 85:0.0851,86:0.0899,87:0.0955,88:0.1021,89:0.1099,90:0.1192,91:0.1306,
+ 92:0.1449,93:0.1634,94:0.1879
+};
+/* ---- Benefit adjustments for taking CPP or OAS early or late ----
+ Statutory and stable for over a decade, so they sit here rather than in the
+ Annual settings panel:
+   CPP  0.6% less per month before 65 (down to 60), 0.7% more per month after
+        65 (up to 70). So 64% of the standard amount at 60, 142% at 70.
+   OAS  0.6% more per month after 65 (up to 70). It cannot start before 65.
+ Both apply to the standard amount, so a client deferring to 70 receives
+ materially more than the age-65 figure. */
+function cppStartFactor(startAge){
+ const a = Math.min(70, Math.max(60, startAge));
+ return a < 65 ? 1 - 0.006*(65-a)*12 : 1 + 0.007*(a-65)*12;
+}
+function oasStartFactor(startAge){
+ const a = Math.min(70, Math.max(65, startAge));
+ return 1 + 0.006*(a-65)*12;
+}
+
+function rrifFactor(age){
+ if(age>=95) return 0.20;
+ if(age>=71) return RRIF_FACTORS[age];
+ if(age>=55) return 1/(90-age);
+ return 0;
+}
+
+/* Ontario LIF maximum: 1 / present value of $1/yr to age 90 at the reference rate. */
+function lifMaxFactor(age, refRate){
+ const n = 90 - age;
+ if(n <= 1) return 1;
+ if(refRate <= 0) return 1/n;
+ const pv = (1 - Math.pow(1+refRate, -n)) / refRate;
+ return 1/pv;
+}
+
+const fmt = n => (n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString('en-CA');
+
+/* Non-refundable credits beyond the basic personal amount.
+   `age` drives the age amount (65+), `eligiblePension` drives the pension
+   income amount. Both are calculated federally and provincially at their own
+   lowest rates, which is how the credits actually work.
+
+   Approximation worth knowing: the combined bracket table already has Ontario's
+   surtax baked into its rates. In reality credits reduce basic provincial tax
+   before surtax is applied, so the Ontario portion of these credits is slightly
+   understated for clients in the surtax range. The direction is conservative -
+   the tool charges marginally more tax than it should, not less. */
+function extraCredits(netIncome, scale, age, eligiblePension){
+ const S = SETTINGS;
+ let credit = 0;
+
+ if(age >= 65){
+ const reduce = (S.ageReduction/100);
+ const fedAge = Math.max(0, S.fedAgeAmt*scale - reduce*Math.max(0, netIncome - S.fedAgeThresh*scale));
+ const onAge = Math.max(0, S.onAgeAmt*scale - reduce*Math.max(0, netIncome - S.onAgeThresh*scale));
+ credit += fedAge*(S.fedBpaRate/100) + onAge*(S.onBpaRate/100);
+ }
+
+ if(eligiblePension > 0){
+ credit += Math.min(eligiblePension, S.fedPensionAmt*scale)*(S.fedBpaRate/100)
+ + Math.min(eligiblePension, S.onPensionAmt*scale)*(S.onBpaRate/100);
+ }
+ return credit;
+}
+
+function taxOnIncome(taxable, scale, opts){
+ if(taxable<=0) return 0;
+ let tax=0, prev=0;
+ for(const b of SETTINGS.brackets){
+ const top = (b.upTo===null||b.upTo==='')?Infinity:b.upTo*scale;
+ const slice = Math.min(taxable, top) - prev;
+ if(slice>0) tax += slice*(b.rate/100);
+ prev = top;
+ if(taxable<=top) break;
+ }
+ tax -= bpaCredit()*scale;
+ if(opts) tax -= extraCredits(taxable, scale, opts.age||0, opts.eligiblePension||0);
+ return Math.max(0, tax);
+}
+
+/* ---------- Custom income / expense rows ---------- */
+const CUSTOM_SLOTS = 4;
+function buildCustomRows(containerId, prefix){
+ let html = '';
+ for(let i=0;i<CUSTOM_SLOTS;i++){
+ html += `<div class="cust-row">
+ <input type="text" id="${prefix}Label${i}" placeholder="Label ${i+1} (e.g. Rental income)" />
+ <input type="number" id="${prefix}Amt${i}" value="0" step="1000" placeholder="$ per year" />
+ <input type="number" id="${prefix}From${i}" placeholder="from age" min="40" max="105" />
+ <input type="number" id="${prefix}To${i}" placeholder="to age" min="40" max="105" />
+ <div class="cust-chk">
+ <input type="checkbox" id="${prefix}Idx${i}" checked />
+ <label class="m-lab" for="${prefix}Idx${i}">Index to inflation</label>
+ </div>
+ </div>`;
+ }
+ document.getElementById(containerId).innerHTML = html;
+}
+buildCustomRows('taxableRows','tx');
+buildCustomRows('nonTaxableRows','nt');
+
+function readCustom(prefix, taxable, p){
+ const out = [];
+ for(let i=0;i<CUSTOM_SLOTS;i++){
+ const label = (document.getElementById(prefix+'Label'+i).value||'').trim();
+ const amt = parseFloat(document.getElementById(prefix+'Amt'+i).value)||0;
+ if(!label || amt===0) continue;
+ const f = parseFloat(document.getElementById(prefix+'From'+i).value);
+ const t = parseFloat(document.getElementById(prefix+'To'+i).value);
+ out.push({label, amount:amt, taxable,
+ from:isNaN(f)?p.curAge:f, to:isNaN(t)?p.lifeExp:t,
+ indexed:document.getElementById(prefix+'Idx'+i).checked});
+ }
+ return out;
+}
+
+/* ---------- Sliders ---------- */
+const inflation=document.getElementById('inflation');
+const lifeExp=document.getElementById('lifeExp');
+const retRate=document.getElementById('retRate');
+function syncSliderLabels(){
+ document.getElementById('inflVal').textContent=parseFloat(inflation.value).toFixed(1)+'%';
+ document.getElementById('leVal').textContent=lifeExp.value;
+ document.getElementById('retVal').textContent=parseFloat(retRate.value).toFixed(1)+'%';
+}
+inflation.oninput=lifeExp.oninput=retRate.oninput=syncSliderLabels;
+
+const FUND_TOLERANCE = 0.001;
+
+/* ==================================================================
+ CORE SIMULATION
+================================================================== */
+function simulate(realSpend, p, wantTable){
+ let rrsp=p.rrspAssets, lira=p.liraAssets, nonReg=p.nonRegAssets;
+ const rows=[];
+ let lastNominalSpend=0, yearsFunded=0, totalShortfallPV=0, maxRecErr=0;
+ const oas75 = p.oas65 * (1 + p.oasUplift/100);
+ let prevTaxable = 0; // carried forward for the OAS recovery tax
+
+ for(let age=p.curAge, y=0; age<=p.lifeExp; age++, y++){
+ const inflF = Math.pow(1+p.inflation, y);
+ const rrspStart=rrsp, liraStart=lira;
+
+ rrsp *= (1+p.ret); lira *= (1+p.ret); nonReg *= (1+p.ret);
+
+ const incomeNom = (age < p.incomeStop) ? p.income*inflF : 0;
+
+ let pensionNom = 0;
+ if(p.pensionAmt>0 && age >= p.pensionStart){
+ let idxF = 1;
+ if(p.pensionIndex==='full') idxF = Math.pow(1+p.inflation, y);
+ else if(p.pensionIndex==='partial') idxF = Math.pow(1+p.inflation*0.5, y);
+ pensionNom = p.pensionAmt*idxF;
+ }
+
+ const cppNom = (p.cppAmt>0 && age >= p.cppStart) ? p.cppAmt*inflF : 0;
+
+ let oasGross = 0;
+ if(p.oasInclude && age >= p.oasStart){
+ // Deferring past 65 permanently raises the amount; the 75+ uplift applies on top
+ oasGross = (age>=75 ? oas75 : p.oas65) * oasStartFactor(p.oasStart) * inflF;
+ }
+
+ let custTaxable=0, custNonTaxable=0;
+ const custDetail={};
+ for(const c of p.custom){
+ if(age < c.from || age > c.to) continue;
+ const v = c.amount * (c.indexed ? inflF : 1);
+ custDetail[c.label] = (custDetail[c.label]||0) + v;
+ if(c.taxable) custTaxable += v; else custNonTaxable += v;
+ }
+
+ const nonRegYieldAmt = nonReg * p.nonRegYield;
+
+ let targetNom, isTargetYear=false;
+ if(p.targetOn && age >= p.targetFrom && age <= p.targetTo){
+ isTargetYear = true;
+ targetNom = p.targetIndexed ? p.targetAmt*inflF : p.targetAmt;
+ } else {
+ targetNom = realSpend*inflF;
+ }
+
+ let rrifMin = (age>=72 && rrsp>0) ? Math.min(rrspStart*rrifFactor(age), rrsp) : 0;
+ let lifMin = (age>=72 && lira>0) ? Math.min(liraStart*rrifFactor(age), lira) : 0;
+ const lifMaxPct = lifMaxFactor(age, p.lifRate);
+ const lifMax = Math.min(liraStart*lifMaxPct, lira);
+ if(lifMin > lifMax) lifMin = lifMax;
+
+ const fixedTaxable = incomeNom + pensionNom + cppNom + oasGross + custTaxable + nonRegYieldAmt;
+ function taxFor(rrifW, lifW){
+ const taxable = fixedTaxable + rrifW + lifW;
+ /* Eligible pension income for the pension income amount: a defined-benefit
+    pension at any age, plus RRIF and LIF withdrawals from 65. CPP and OAS
+    never qualify. Registered withdrawals before 65 are assumed to come from
+    an RRSP, which does not qualify. */
+ const eligiblePension = pensionNom + (age >= 65 ? rrifW + lifW : 0);
+ const t = taxOnIncome(taxable, inflF, {age, eligiblePension});
+ let claw = 0;
+ if(p.oasClawback && oasGross>0){
+ /* The recovery tax is assessed on the PRIOR year's net income, not the
+    current year's. In the first projection year there is no prior year on
+    record, so the current year stands in. */
+ const basis = (y === 0) ? taxable : prevTaxable;
+ const over = basis - p.clawThresh*inflF;
+ if(over>0) claw = Math.min(oasGross, (p.clawRate/100)*over);
+ }
+ return {tax:t, clawback:claw, taxable};
+ }
+ function netCash(rrifW, lifW, nrW){
+ const {tax, clawback} = taxFor(rrifW, lifW);
+ return incomeNom + pensionNom + cppNom + oasGross + custTaxable + custNonTaxable
+ + rrifW + lifW + nrW - tax - clawback;
+ }
+
+ let rrifW=rrifMin, lifW=lifMin, nrW=0, reinvested=0;
+ let cash = netCash(rrifW, lifW, 0);
+
+ if(cash < targetNom){
+ const rrspAvail = rrsp - rrifW;
+ if(rrspAvail > 0){
+ let lo=0, hi=rrspAvail;
+ for(let i=0;i<50;i++){ const m=(lo+hi)/2;
+ if(netCash(rrifW+m, lifW, 0) < targetNom) lo=m; else hi=m; }
+ rrifW += lo; cash = netCash(rrifW, lifW, 0);
+ }
+ if(cash < targetNom && lifMax > lifW){
+ const avail = lifMax - lifW;
+ let lo=0, hi=avail;
+ for(let i=0;i<50;i++){ const m=(lo+hi)/2;
+ if(netCash(rrifW, lifW+m, 0) < targetNom) lo=m; else hi=m; }
+ lifW += lo; cash = netCash(rrifW, lifW, 0);
+ }
+ if(cash < targetNom && nonReg > 0){
+ nrW = Math.min(targetNom - cash, nonReg);
+ cash = netCash(rrifW, lifW, nrW);
+ }
+ } else if(cash > targetNom){
+ reinvested = cash - targetNom;
+ nonReg += reinvested;
+ cash = targetNom;
+ }
+
+ const {tax:taxPaid, clawback, taxable:taxableThisYear} = taxFor(rrifW, lifW);
+ prevTaxable = taxableThisYear; // basis for next year's OAS recovery tax
+ rrsp -= rrifW; lira -= lifW; nonReg -= nrW;
+ if(rrsp<0) rrsp=0; if(lira<0) lira=0; if(nonReg<0) nonReg=0;
+
+ const assetsEnd = rrsp+lira+nonReg;
+ const shortfall = targetNom - cash;
+ if(shortfall > 1) totalShortfallPV += shortfall/inflF;
+ const underfunded = shortfall > Math.max(1, targetNom*FUND_TOLERANCE);
+ if(!underfunded) yearsFunded++;
+ lastNominalSpend = cash;
+
+ const inflowSum = incomeNom + pensionNom + cppNom + oasGross
+ + custTaxable + custNonTaxable + rrifW + lifW + nrW;
+ const recErr = Math.abs(inflowSum - taxPaid - clawback - reinvested - cash);
+ if(recErr > maxRecErr) maxRecErr = recErr;
+
+ if(wantTable){
+ rows.push({age, rrspStart, liraStart, rrifMin, lifMin, lifMax, lifMaxPct,
+ rrifW, lifW, nrW, reinvested,
+ income:incomeNom, pension:pensionNom, cpp:cppNom, oas:oasGross,
+ custTaxable, custNonTaxable, custDetail, nonRegYieldAmt,
+ tax:taxPaid, clawback, spend:cash, assetsEnd, isTargetYear,
+ depleted:underfunded, recErr});
+ }
+ }
+
+ const endAssets = rrsp+lira+nonReg;
+ const feasibility = (totalShortfallPV > 1) ? -totalShortfallPV : endAssets;
+ return {endBalance:feasibility, endAssets, rows, lastNominalSpend, yearsFunded, maxRecErr};
+}
+
+function solve(p){
+ const total = p.rrspAssets + p.liraAssets + p.nonRegAssets;
+ let lo=0, hi=Math.max(100000, total/4);
+ for(let i=0; i<100 && simulate(hi,p,false).endBalance>0; i++) hi *= 2;
+ for(let i=0;i<60;i++){ const m=(lo+hi)/2;
+ if(simulate(m,p,false).endBalance>0) lo=m; else hi=m; }
+ return {spend:lo, detail:simulate(lo,p,true)};
+}
+
+/* ---------- Inputs ---------- */
+const INPUT_IDS = ['clientName','advisorName','curAge','income','incomeStop',
+ 'pensionAmt','pensionStart','pensionIndex','cppFull','cppAmt','cppStart',
+ 'oasInclude','oasStart','oasClawback','rrspAssets','liraAssets','nonRegAssets',
+ 'nonRegYield','inflation','lifeExp','retRate','lifRate',
+ 'targetOn','targetAmt','targetFrom','targetTo','targetIndexed'];
+
+function readInputs(){
+ const v=id=>parseFloat(document.getElementById(id).value)||0;
+ const s=id=>document.getElementById(id).value;
+ const p = {
+ curAge:v('curAge'), income:v('income'), incomeStop:v('incomeStop'),
+ pensionAmt:v('pensionAmt'), pensionStart:v('pensionStart'), pensionIndex:s('pensionIndex'),
+ cppFull:s('cppFull')==='yes', cppStart:v('cppStart'),
+ oasInclude:s('oasInclude')==='yes', oasStart:v('oasStart'), oasClawback:s('oasClawback')==='yes',
+ rrspAssets:v('rrspAssets'), liraAssets:v('liraAssets'), nonRegAssets:v('nonRegAssets'),
+ nonRegYield:v('nonRegYield')/100,
+ inflation:v('inflation')/100, lifeExp:v('lifeExp'), ret:v('retRate')/100,
+ lifRate:v('lifRate')/100,
+ targetOn:s('targetOn')==='yes', targetAmt:v('targetAmt'),
+ targetFrom:v('targetFrom'), targetTo:v('targetTo'), targetIndexed:s('targetIndexed')==='yes',
+ // statutory values pulled from settings so the engine never reads globals directly
+ oas65:SETTINGS.oas65, oasUplift:SETTINGS.oasUplift,
+ clawThresh:SETTINGS.clawThresh, clawRate:SETTINGS.clawRate
+ };
+ /* The statutory maximum is quoted at age 65, so it has to be adjusted for the
+    elected start age. A manually entered figure is the amount the client will
+    actually receive in their first year, so it is used exactly as given. */
+ p.cppAmt = p.cppFull ? SETTINGS.cppMax * cppStartFactor(p.cppStart) : v('cppAmt');
+ p.custom = readCustom('tx', true, p).concat(readCustom('nt', false, p));
+ return p;
+}
+
+/* ---------- Blocking validation ----------
+ These are errors, not warnings. A negative asset produces a perfectly
+ plausible-looking figure (a typo turned $32,851 into $11,877 in testing), so the
+ calculation is refused outright rather than shown with a caveat. */
+const NON_NEGATIVE_FIELDS = [
+ ['income','Employment income'],
+ ['pensionAmt','Expected pension'],
+ ['cppAmt','CPP amount'],
+ ['rrspAssets','RRSP / RRIF'],
+ ['liraAssets','LIRA / LIF'],
+ ['nonRegAssets','Non-registered'],
+ ['nonRegYield','Non-registered taxable yield'],
+ ['targetAmt','Target income']
+];
+
+function validateInputs(){
+ const errs=[];
+ document.querySelectorAll('.field input.bad').forEach(e=>e.classList.remove('bad'));
+ for(const [id,label] of NON_NEGATIVE_FIELDS){
+ const el=document.getElementById(id);
+ const raw=(el.value||'').trim();
+ if(raw==='') continue;
+ const n=parseFloat(raw);
+ if(!isNaN(n) && n<0){
+ errs.push(`<strong>${label}</strong> cannot be negative (currently ${raw}).`);
+ el.classList.add('bad');
+ }
+ }
+ const curAge=parseFloat(document.getElementById('curAge').value);
+ const lifeExp=parseFloat(document.getElementById('lifeExp').value);
+ if(isNaN(curAge)||curAge<=0){ errs.push('<strong>Current age</strong> must be a positive number.'); document.getElementById('curAge').classList.add('bad'); }
+ else if(!isNaN(lifeExp) && lifeExp<=curAge){ errs.push('<strong>Life expectancy</strong> must be greater than the current age.'); document.getElementById('lifeExp').classList.add('bad'); }
+ return errs;
+}
+
+function showInputErrors(errs){
+ const box=document.getElementById('inputError');
+ if(!errs.length){ box.className='errbox'; box.innerHTML=''; return false; }
+ box.className='errbox show';
+ box.innerHTML='<strong>This plan cannot be calculated</strong>'+
+ 'Please correct the following, then calculate again:'+
+ '<ul>'+errs.map(e=>`<li>${e}</li>`).join('')+'</ul>';
+ return true;
+}
+
+/* ---------- Sanity checks (advisory) ---------- */
+function sanityChecks(p){
+ const w=[];
+ if(p.ret <= p.inflation) w.push('The expected return is at or below inflation, so the portfolio loses purchasing power every year.');
+ if(p.incomeStop < p.curAge && p.income>0) w.push('The employment income stops before the current age, so none of it is counted.');
+ if(p.pensionAmt>0 && p.pensionStart < p.curAge) w.push('The pension starts before the client’s current age, so it is treated as already in payment.');
+ if(p.cppAmt>0 && p.cppStart < p.curAge) w.push('CPP starts before the client’s current age, so it is treated as already in payment.');
+ if(p.targetOn){
+ if(p.targetTo < p.targetFrom) w.push('The target income period ends before it begins, so no target has been applied.');
+ if(p.targetFrom > p.lifeExp || p.targetTo < p.curAge) w.push('The target income period falls outside the plan years, so it has no effect.');
+ }
+ if((p.rrspAssets+p.liraAssets+p.nonRegAssets)===0 && p.income===0 && p.pensionAmt===0 && p.cppAmt===0 && !p.oasInclude)
+ w.push('No assets and no income have been entered, so spending power is nil.');
+ if(p.liraAssets>0 && p.lifRate<=0) w.push('The LIF reference rate is zero, which allows a far larger LIF withdrawal than normal.');
+ if(p.nonRegAssets>0 && p.nonRegYield===0) w.push('The non-registered taxable yield is 0%, so that account grows entirely tax-free. This makes spending power look higher than it should for a taxable account.');
+ return w;
+}
+
+/* ---------- Settings status ---------- */
+function settingsStatus(){
+ const vt = SETTINGS.validThrough;
+ if(!vt) return {state:'soon', days:0};
+ const end = new Date(vt+'T23:59:59');
+ const days = Math.ceil((end - new Date())/86400000);
+ if(days < 0) return {state:'expired', days};
+ if(days <= 60) return {state:'soon', days};
+ return {state:'current', days};
+}
+
+function renderStatusBanner(){
+ const b=document.getElementById('statusBanner');
+ const st=settingsStatus();
+ const updated = SETTINGS.updatedOn
+ ? `Last updated ${SETTINGS.updatedOn}${SETTINGS.updatedBy?' by '+SETTINGS.updatedBy:''}.`
+ : 'These are the built-in figures, which have not been reviewed on this computer.';
+ b.className='banner show '+(st.state==='expired'?'expired':st.state==='soon'?'soon':'ok');
+ if(st.state==='expired'){
+ b.innerHTML=`<strong>Government figures are out of date</strong>
+ These figures were only valid to ${SETTINGS.validThrough} (${SETTINGS.taxYear} tax year).
+ Reports produced now will carry a warning. ${updated}
+ <br /><button type="button" id="bannerFix">Open Annual settings</button>`;
+ } else if(st.state==='soon'){
+ b.innerHTML=`<strong>Government figures need review soon</strong>
+ Valid for another ${st.days} day${st.days===1?'':'s'} (through ${SETTINGS.validThrough}, ${SETTINGS.taxYear} tax year). ${updated}
+ <br /><button type="button" id="bannerFix">Open Annual settings</button>`;
+ } else {
+ b.innerHTML=`<strong>Government figures current for ${SETTINGS.taxYear}</strong>
+ Next review due ${SETTINGS.validThrough}. ${updated}`;
+ }
+ const fix=document.getElementById('bannerFix');
+ if(fix) fix.onclick=openSettings;
+ document.getElementById('taxYearNote').innerHTML =
+ `Combined Federal + Ontario marginal brackets for <strong>${SETTINGS.taxYear}</strong>, applied to each
+ year's taxable income with the basic personal amount credit. OAS recovery tax applied separately.
+ Change these in <strong>Annual settings</strong>.`;
+ const cppStart = parseFloat(document.getElementById('cppStart').value)||65;
+ const oasStart = parseFloat(document.getElementById('oasStart').value)||65;
+ const cppF = cppStartFactor(cppStart), oasF = oasStartFactor(oasStart);
+ document.getElementById('cppHint').textContent =
+ document.getElementById('cppFull').value==='yes'
+ ? `Using ${SETTINGS.taxYear} maximum, adjusted for age ${cppStart}: ${fmt(SETTINGS.cppMax*cppF)}/yr`
+ : 'The amount the client will actually receive in their first year, from their Service Canada statement.';
+ document.getElementById('cppStartHint').textContent = cppStart===65
+ ? 'Standard age. Taking it earlier reduces the amount; deferring increases it.'
+ : `${cppStart<65?'Reduced':'Increased'} to ${Math.round(cppF*100)}% of the age-65 amount.`;
+ document.getElementById('oasStartHint').textContent = oasStart===65
+ ? 'Standard age. Steps up a further 10% at 75.'
+ : `Deferred to ${Math.round(oasF*100)}% of the age-65 amount. Steps up a further 10% at 75.`;
+ document.getElementById('oasHint').textContent =
+ `Recovery tax starts at ${fmt(SETTINGS.clawThresh)} net income (${SETTINGS.taxYear}).`;
+ document.getElementById('appFooter').innerHTML =
+ `CS Investment Counsel Corporation &middot; Calculator v${APP_VERSION} &middot;
+ ${SETTINGS.taxYear} tax figures &middot; For illustration only. Figures are estimates based on the
+ assumptions entered and do not constitute financial, tax, or investment advice.`;
+}
+
+/* ---------- Settings panel ---------- */
+let settingsDraft = null;
+
+function renderBrackets(list){
+ document.getElementById('brkRows').innerHTML = list.map((b,i)=>`
+ <div class="brk-row">
+ <input type="number" step="1" data-brk="upTo" data-i="${i}" value="${b.upTo===null?'':b.upTo}" placeholder="(and above)" />
+ <input type="number" step="0.01" data-brk="rate" data-i="${i}" value="${b.rate}" />
+ <button class="rm" type="button" data-rm="${i}" title="Remove">&times;</button>
+ </div>`).join('');
+ document.querySelectorAll('#brkRows [data-rm]').forEach(btn=>{
+ btn.onclick=()=>{ settingsDraft.brackets.splice(+btn.dataset.rm,1); renderBrackets(settingsDraft.brackets); };
+ });
+ document.querySelectorAll('#brkRows [data-brk]').forEach(inp=>{
+ inp.oninput=()=>{
+ const i=+inp.dataset.i;
+ if(inp.dataset.brk==='upTo') settingsDraft.brackets[i].upTo = inp.value===''?null:parseFloat(inp.value);
+ else settingsDraft.brackets[i].rate = parseFloat(inp.value)||0;
+ };
+ });
+}
+
+function fillSettingsForm(s){
+ document.getElementById('setTaxYear').value=s.taxYear;
+ document.getElementById('setValidThrough').value=s.validThrough;
+ document.getElementById('setUpdatedBy').value=s.updatedBy==='built-in default'?'':s.updatedBy;
+ document.getElementById('setLifRate').value=s.lifRate;
+ document.getElementById('setCppMax').value=Math.round(s.cppMax*100)/100;
+ document.getElementById('setOas65').value=Math.round(s.oas65*100)/100;
+ document.getElementById('setOasUplift').value=s.oasUplift;
+ document.getElementById('setClawThresh').value=s.clawThresh;
+ document.getElementById('setClawRate').value=s.clawRate;
+ document.getElementById('setFedBpa').value=s.fedBpa;
+ document.getElementById('setFedBpaRate').value=s.fedBpaRate;
+ document.getElementById('setOnBpa').value=s.onBpa;
+ document.getElementById('setOnBpaRate').value=s.onBpaRate;
+ document.getElementById('setFedAgeAmt').value=s.fedAgeAmt;
+ document.getElementById('setFedAgeThresh').value=s.fedAgeThresh;
+ document.getElementById('setOnAgeAmt').value=s.onAgeAmt;
+ document.getElementById('setOnAgeThresh').value=s.onAgeThresh;
+ document.getElementById('setAgeReduction').value=s.ageReduction;
+ document.getElementById('setFedPensionAmt').value=s.fedPensionAmt;
+ document.getElementById('setOnPensionAmt').value=s.onPensionAmt;
+ renderBrackets(s.brackets);
+ document.getElementById('setCode').value = encodeSettings(s);
+}
+
+function readSettingsForm(){
+ const v=id=>parseFloat(document.getElementById(id).value)||0;
+ const d = settingsDraft;
+ return Object.assign({}, d, {
+ taxYear:document.getElementById('setTaxYear').value.trim() || d.taxYear,
+ validThrough:document.getElementById('setValidThrough').value || d.validThrough,
+ updatedBy:document.getElementById('setUpdatedBy').value.trim() || 'unnamed',
+ lifRate:v('setLifRate'), cppMax:v('setCppMax'), oas65:v('setOas65'),
+ oasUplift:v('setOasUplift'), clawThresh:v('setClawThresh'), clawRate:v('setClawRate'),
+ fedBpa:v('setFedBpa'), fedBpaRate:v('setFedBpaRate'),
+ onBpa:v('setOnBpa'), onBpaRate:v('setOnBpaRate'),
+ fedAgeAmt:v('setFedAgeAmt'), fedAgeThresh:v('setFedAgeThresh'),
+ onAgeAmt:v('setOnAgeAmt'), onAgeThresh:v('setOnAgeThresh'),
+ ageReduction:v('setAgeReduction'),
+ fedPensionAmt:v('setFedPensionAmt'), onPensionAmt:v('setOnPensionAmt'),
+ brackets:d.brackets
+ });
+}
+
+function encodeSettings(s){ try{ return btoa(unescape(encodeURIComponent(JSON.stringify(s)))); }catch(e){ return ''; } }
+function decodeSettings(code){
+ try{ return JSON.parse(decodeURIComponent(escape(atob(code.trim())))); }catch(e){ return null; }
+}
+
+function setLocked(locked){
+ document.getElementById('setForm').className = locked ? 'locked' : '';
+ document.getElementById('lockPill').className = 'pill ' + (locked?'locked-p':'unlocked-p');
+ document.getElementById('lockPill').textContent = locked ? 'Locked' : 'Unlocked';
+ document.getElementById('lockText').textContent = locked
+ ? 'Values are locked to prevent accidental changes.'
+ : 'Values can be edited. Press Save & lock when finished.';
+ document.getElementById('unlockBtn').style.display = locked ? '' : 'none';
+}
+
+function openSettings(){
+ settingsDraft = JSON.parse(JSON.stringify(SETTINGS));
+ fillSettingsForm(settingsDraft);
+ setLocked(true);
+ document.getElementById('settingsOverlay').classList.add('show');
+}
+function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('show'); }
+
+document.getElementById('settingsBtn').onclick=openSettings;
+document.getElementById('cancelSetBtn').onclick=closeSettings;
+document.getElementById('unlockBtn').onclick=()=>{
+ const entry = prompt('Enter the settings passcode to unlock editing:');
+ if(entry===null) return;
+ if(entry.trim().toLowerCase() !== SETTINGS_PASSCODE){ alert('Incorrect passcode. Values remain locked.'); return; }
+ setLocked(false);
+};
+document.getElementById('addBrkBtn').onclick=()=>{
+ settingsDraft.brackets.push({upTo:null, rate:0});
+ renderBrackets(settingsDraft.brackets);
+};
+document.getElementById('restoreDefaultsBtn').onclick=()=>{
+ if(!confirm('Replace all figures with the built-in defaults?')) return;
+ settingsDraft = DEFAULT_SETTINGS();
+ fillSettingsForm(settingsDraft);
+};
+document.getElementById('copyCodeBtn').onclick=()=>{
+ const t=document.getElementById('setCode');
+ t.value = encodeSettings(readSettingsForm());
+ t.select();
+ try{ document.execCommand('copy'); alert('Settings code copied. Send it to your colleague to paste in.'); }
+ catch(e){ alert('Select the text and copy it manually.'); }
+};
+document.getElementById('applyCodeBtn').onclick=()=>{
+ const parsed = decodeSettings(document.getElementById('setCode').value);
+ if(!parsed || !parsed.brackets){ alert('That code was not recognised. Please check it was copied in full.'); return; }
+ settingsDraft = Object.assign(DEFAULT_SETTINGS(), parsed);
+ fillSettingsForm(settingsDraft);
+ setLocked(false);
+ alert('Code applied. Review the values, then press Save & lock.');
+};
+document.getElementById('saveSetBtn').onclick=()=>{
+ const s = readSettingsForm();
+ if(!s.brackets.length){ alert('At least one tax bracket is required.'); return; }
+ s.updatedOn = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+ SETTINGS = s;
+ persistSettings(SETTINGS);
+ renderStatusBanner();
+ closeSettings();
+ if(LAST) calculate(false,false);
+};
+
+/* ---------- Scenarios ---------- */
+function collectInputs(){
+ const o={};
+ INPUT_IDS.forEach(id=>{ const el=document.getElementById(id); if(el) o[id]=el.value; });
+ ['tx','nt'].forEach(pfx=>{
+ for(let i=0;i<CUSTOM_SLOTS;i++){
+ o[pfx+'Label'+i]=document.getElementById(pfx+'Label'+i).value;
+ o[pfx+'Amt'+i]=document.getElementById(pfx+'Amt'+i).value;
+ o[pfx+'From'+i]=document.getElementById(pfx+'From'+i).value;
+ o[pfx+'To'+i]=document.getElementById(pfx+'To'+i).value;
+ o[pfx+'Idx'+i]=document.getElementById(pfx+'Idx'+i).checked;
+ }
+ });
+ return o;
+}
+function applyInputs(o){
+ Object.keys(o).forEach(k=>{
+ const el=document.getElementById(k);
+ if(!el) return;
+ if(el.type==='checkbox') el.checked = !!o[k]; else el.value = o[k];
+ });
+ syncSliderLabels();
+ renderStatusBanner();
+}
+function loadScenarios(){
+ try{ return JSON.parse(localStorage.getItem(LS_SCENARIOS)||'{}'); }catch(e){ return {}; }
+}
+function saveScenarios(all){
+ try{ localStorage.setItem(LS_SCENARIOS, JSON.stringify(all)); }catch(e){}
+}
+function refreshScenarioList(selected){
+ const all=loadScenarios();
+ const sel=document.getElementById('scenarioList');
+ const names=Object.keys(all).sort();
+ sel.innerHTML='<option value="">Load saved scenario…</option>' +
+ names.map(n=>`<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`).join('');
+ if(selected && all[selected]) sel.value=selected;
+}
+document.getElementById('saveScenarioBtn').onclick=()=>{
+ if(!STORAGE_OK){ alert('Saving is unavailable in this browser session, so nothing was stored. Please see the notice at the top of the page.'); return; }
+ const suggested = (document.getElementById('clientName').value||'').trim() || 'Untitled';
+ const name = prompt('Save this scenario as:', suggested);
+ if(name===null) return;
+ const key=name.trim(); if(!key) return;
+ const all=loadScenarios();
+ if(all[key] && !confirm(`"${key}" already exists. Replace it?`)) return;
+ all[key]={saved:new Date().toISOString(), inputs:collectInputs()};
+ saveScenarios(all);
+ refreshScenarioList(key);
+ setWorkState('Saved scenario: '+key);
+};
+document.getElementById('scenarioList').onchange=function(){
+ const key=this.value; if(!key) return;
+ const all=loadScenarios();
+ if(!all[key]) return;
+ applyInputs(all[key].inputs);
+ setWorkState('Loaded: '+key);
+ calculate(true,true);
+};
+document.getElementById('deleteScenarioBtn').onclick=()=>{
+ const sel=document.getElementById('scenarioList');
+ const key=sel.value;
+ if(!key){ alert('Choose a saved scenario first.'); return; }
+ if(!confirm(`Delete the saved scenario "${key}"? This cannot be undone.`)) return;
+ const all=loadScenarios(); delete all[key]; saveScenarios(all);
+ refreshScenarioList(); setWorkState('Deleted: '+key);
+};
+document.getElementById('newClientBtn').onclick=()=>{
+ if(!confirm('Clear all client details and start a new client? Saved scenarios are not affected.')) return;
+ applyInputs(BLANK_INPUTS);
+ document.getElementById('scenarioList').value='';
+ document.getElementById('resultBlock').style.display='none';
+ LAST=null; LAST_SERIAL=null; HAS_CALCULATED=false;
+ showInputErrors([]);
+ try{ localStorage.removeItem(LS_DRAFT); }catch(e){}
+ setWorkState('New client');
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+function setWorkState(t){ document.getElementById('workState').textContent=t; }
+
+/* ---------- Scenario backup ----------
+ Saved scenarios live in one browser on one machine. Clearing the browser or
+ changing computer loses them silently, so there has to be a way to get them
+ out to a file that can sit in the client folder. */
+function exportScenarios(){
+ const all=loadScenarios();
+ const names=Object.keys(all);
+ if(!names.length){ alert('There are no saved scenarios to back up yet.'); return; }
+ const payload={
+ kind:'csic-spending-calculator-scenarios',
+ version:APP_VERSION,
+ exported:new Date().toISOString(),
+ scenarios:all
+ };
+ const stamp=new Date().toISOString().slice(0,10);
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url; a.download=`csic-scenarios-${stamp}.json`;
+ document.body.appendChild(a); a.click();
+ setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
+ setWorkState(`Backed up ${names.length} scenario${names.length===1?'':'s'}`);
+}
+
+function importScenarios(file){
+ const reader=new FileReader();
+ reader.onload=()=>{
+ let data;
+ try{ data=JSON.parse(reader.result); }
+ catch(e){ alert('That file could not be read. Please choose a backup file created by this tool.'); return; }
+ if(!data || data.kind!=='csic-spending-calculator-scenarios' || !data.scenarios){
+ alert('That does not look like a scenario backup from this tool.'); return;
+ }
+ const incoming=Object.keys(data.scenarios);
+ if(!incoming.length){ alert('That backup file contains no scenarios.'); return; }
+ const all=loadScenarios();
+ const clashes=incoming.filter(n=>all[n]);
+ if(clashes.length && !confirm(
+ `${clashes.length} scenario${clashes.length===1?'':'s'} with the same name already exist `+
+ `(${clashes.slice(0,3).join(', ')}${clashes.length>3?'…':''}).\n\nReplace them with the backup version?`)) return;
+ incoming.forEach(n=>{ all[n]=data.scenarios[n]; });
+ saveScenarios(all);
+ refreshScenarioList();
+ setWorkState(`Restored ${incoming.length} scenario${incoming.length===1?'':'s'}`);
+ alert(`Restored ${incoming.length} scenario${incoming.length===1?'':'s'}. Choose one from the dropdown to open it.`);
+ };
+ reader.readAsText(file);
+}
+
+document.getElementById('exportScenariosBtn').onclick=exportScenarios;
+document.getElementById('importScenariosBtn').onclick=()=>{
+ if(!STORAGE_OK){ alert('Restoring is unavailable in this browser session, because nothing can be stored. Please see the notice at the top of the page.'); return; }
+ document.getElementById('importFile').click();
+};
+document.getElementById('importFile').onchange=function(){
+ if(this.files && this.files[0]) importScenarios(this.files[0]);
+ this.value='';
+};
+
+/* Make the storage limitation visible and stop the save controls from lying. */
+function applyStorageState(){
+ const b=document.getElementById('storageBanner');
+ if(STORAGE_OK){ b.className='banner'; b.innerHTML=''; return; }
+ ['saveScenarioBtn','deleteScenarioBtn','scenarioList','importScenariosBtn'].forEach(id=>{
+ const el=document.getElementById(id);
+ el.disabled=true; el.style.opacity='.5'; el.style.cursor='not-allowed';
+ el.title='Unavailable, because this browser session cannot store data.';
+ });
+ b.className='banner show soon';
+ b.innerHTML=`<strong>Saving is unavailable in this browser session</strong>
+ This browser will not let the tool store anything, so saved scenarios and any changes to
+ Annual settings will be lost when you close the page. This usually happens when the file has
+ been opened from a folder rather than from its web address, or when you are in a private window.
+ <br />Opening the tool from its usual web address will fix it. Calculations and reports are
+ unaffected and work normally.`;
+}
+
+/* Captured before any draft is restored, so "Start new client" returns here. */
+const BLANK_INPUTS = collectInputs();
+
+/* ---------- Autosave ---------- */
+function autosave(){
+ try{ localStorage.setItem(LS_DRAFT, JSON.stringify(collectInputs())); }catch(e){}
+}
+function restoreDraft(){
+ try{
+ const raw=localStorage.getItem(LS_DRAFT);
+ if(!raw) return false;
+ applyInputs(JSON.parse(raw));
+ return true;
+ }catch(e){ return false; }
+}
+
+/* ---------- Serial ---------- */
+let SERIAL_SEQ = 0;
+function makeSerial(){
+ SERIAL_SEQ++;
+ const d=new Date();
+ const stamp=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+ return `CSIC-${stamp}-${String(SERIAL_SEQ).padStart(2,'0')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+}
+
+let LAST = null;
+let TABLE_MODE = 'detailed';
+
+/* Set once the advisor has asked for a calculation, and deliberately NOT
+ cleared when an input turns out to be invalid. LAST is cleared on an error so
+ no stale report can be produced, but live updating has to keep running -
+ otherwise correcting the typo does nothing and the error sits on screen. */
+let HAS_CALCULATED = false;
+/* Held separately from LAST so that fixing a bad entry does not hand the
+ advisor a different plan reference for the same piece of work. */
+let LAST_SERIAL = null;
+
+/* ---------- Columns ---------- */
+function buildColumns(p, rows, mode){
+ const anyCustom = p.custom.some(c => rows.some(r => r.custDetail[c.label]));
+ const anySurplus = rows.some(r => r.reinvested > 0.005);
+ /* The age cell carries a text marker on underfunded years. Red text alone
+    would be invisible to a colour-blind reader and lost in a mono printout. */
+ const cols=[{k:'age',h:'Age',get:r=>r.depleted?`${r.age} (short)`:r.age,raw:true}];
+
+ if(mode==='condensed'){
+ cols.push(
+ {k:'regStart',h:'Reg. start',get:r=>r.rrspStart+r.liraStart,show:p.rrspAssets>0||p.liraAssets>0},
+ {k:'regW',h:'Reg. w/d',get:r=>r.rrifW+r.lifW,show:p.rrspAssets>0||p.liraAssets>0},
+ {k:'nrW',h:'Non-reg w/d',get:r=>r.nrW,show:p.nonRegAssets>0},
+ {k:'pensgov',h:'Pension+gov',get:r=>r.pension+r.cpp+r.oas,show:p.pensionAmt>0||p.cppAmt>0||p.oasInclude},
+ {k:'income',h:'Income',get:r=>r.income,show:p.income>0},
+ {k:'other',h:'Other income/exp.',get:r=>r.custTaxable+r.custNonTaxable,show:anyCustom},
+ {k:'tax',h:'Tax',get:r=>-(r.tax+r.clawback)}
+ );
+ } else {
+ cols.push(
+ {k:'rrspStart',h:'RRSP/RRIF start',get:r=>r.rrspStart,show:p.rrspAssets>0},
+ {k:'rrifMin',h:'RRIF min',get:r=>r.rrifMin,show:p.rrspAssets>0},
+ {k:'rrifW',h:'RRSP/RRIF w/d',get:r=>r.rrifW,show:p.rrspAssets>0},
+ {k:'liraStart',h:'LIRA/LIF start',get:r=>r.liraStart,show:p.liraAssets>0},
+ {k:'lifMax',h:'LIF max allowed',get:r=>r.lifMax,show:p.liraAssets>0},
+ {k:'lifW',h:'LIF w/d',get:r=>r.lifW,show:p.liraAssets>0},
+ {k:'nrW',h:'Non-reg w/d',get:r=>r.nrW,show:p.nonRegAssets>0},
+ {k:'income',h:'Employment',get:r=>r.income,show:p.income>0},
+ {k:'pension',h:'Pension',get:r=>r.pension,show:p.pensionAmt>0},
+ {k:'cpp',h:'CPP',get:r=>r.cpp,show:p.cppAmt>0},
+ {k:'oas',h:'OAS',get:r=>r.oas,show:p.oasInclude}
+ );
+ for(const c of p.custom){
+ if(!rows.some(r=>r.custDetail[c.label])) continue;
+ cols.push({k:'cust:'+c.label,h:c.label+(c.taxable?' (tax)':''),get:r=>r.custDetail[c.label]||0});
+ }
+ cols.push({k:'tax',h:'Income tax',get:r=>-r.tax});
+ if(p.oasClawback && p.oasInclude) cols.push({k:'clawback',h:'OAS clawback',get:r=>-r.clawback});
+ }
+
+ if(anySurplus) cols.push({k:'reinvested',h:'Surplus reinvested',get:r=>-r.reinvested});
+ cols.push({k:'spend',h:'Indexed Spending Power',get:r=>r.spend,green:true});
+ cols.push({k:'assetsEnd',h:'Assets end',get:r=>r.assetsEnd});
+ return cols.filter(c=>c.show===undefined||c.show);
+}
+
+function renderTable(p, detail){
+ const cols=buildColumns(p, detail.rows, TABLE_MODE);
+ document.querySelector('#projTable thead').innerHTML =
+ '<tr>'+cols.map(c=>`<th class="${c.green?'spcol':''}">${c.h}</th>`).join('')+'</tr>';
+ document.querySelector('#projTable tbody').innerHTML = detail.rows.map(r=>
+ `<tr class="${r.depleted?'depleted':''}">`+
+ cols.map(c=>`<td class="${c.green?'spcol':''}">${c.raw?c.get(r):fmt(c.get(r))}</td>`).join('')+
+ '</tr>').join('');
+}
+
+/* ---------- Calculate ---------- */
+function calculate(scroll, newSerial){
+ // Refuse outright on invalid input - never show a figure alongside an error
+ const errs=validateInputs();
+ if(showInputErrors(errs)){
+ document.getElementById('resultBlock').style.display='none';
+ LAST=null;
+ if(scroll) document.getElementById('inputError').scrollIntoView({behavior:'smooth',block:'center'});
+ return false;
+ }
+ const p=readInputs();
+ const {spend, detail}=solve(p);
+ const years=p.lifeExp-p.curAge+1;
+ const serial=(newSerial||!LAST_SERIAL)?makeSerial():LAST_SERIAL;
+ LAST_SERIAL=serial;
+ LAST={p, spend, detail, years, serial, settingsSnapshot:{taxYear:SETTINGS.taxYear, updatedOn:SETTINGS.updatedOn, status:settingsStatus().state}};
+
+ document.getElementById('rSpend').textContent=fmt(spend);
+ document.getElementById('rSub').textContent = p.targetOn
+ ? `Level spending power outside the target period — after tax, in today's dollars, to age ${p.lifeExp}`
+ : `Sustainable annual spending power — after tax, in today's dollars, every year to age ${p.lifeExp}`;
+ document.getElementById('rSerial').textContent='Plan reference: '+serial;
+ document.getElementById('rLifetime').textContent=fmt(spend*years);
+ document.getElementById('rYears').textContent=detail.yearsFunded;
+ document.getElementById('rNomAge').textContent=p.lifeExp;
+ document.getElementById('rNominal').textContent=fmt(detail.lastNominalSpend);
+
+ renderTable(p, detail);
+
+ const warns=sanityChecks(p);
+ const wb=document.getElementById('warnBox');
+ if(warns.length){
+ wb.className='warnbox show';
+ wb.innerHTML='<strong>Check these inputs</strong><ul>'+warns.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+ } else { wb.className='warnbox'; wb.innerHTML=''; } // clear, don't just hide
+
+ const rb=document.getElementById('reconBox');
+ const ok=detail.maxRecErr<0.01;
+ rb.className='recon'+(ok?'':' bad');
+ rb.innerHTML= ok
+ ? `<strong>Cash flow reconciled.</strong> In every one of the ${detail.rows.length} years, all inflows less income tax and OAS clawback equal the Indexed Spending Power shown.`
+ : `<strong>Cash flow does not reconcile.</strong> Largest discrepancy: $${detail.maxRecErr.toFixed(2)}. Do not rely on this projection, and please report it.`;
+
+ document.getElementById('methodNote').innerHTML=methodText(p);
+ const block=document.getElementById('resultBlock');
+ block.style.display='block';
+ if(scroll) block.scrollIntoView({behavior:'smooth',block:'start'});
+ return true;
+}
+
+function methodText(p){
+ return `<strong>How this works.</strong> The tool finds the single constant <em>real</em>
+ (today's dollars) after-tax spending amount that draws the combined accounts down to
+ approximately zero at the chosen life expectancy${p.targetOn?', after first funding the target income period in full':''}.
+ Each year: assets grow at the expected return; employment income, pension, CPP, OAS and any other
+ lines are added; combined Federal + Ontario marginal brackets are applied; RRIF minimums are
+ enforced from age 72; LIF withdrawals are capped at the Ontario maximum; and remaining needs are
+ funded from RRSP/RRIF, then LIF within its cap, then non-registered capital.
+ <br /><br />
+ <strong>Tax treatment.</strong> Growth inside RRSP/RRIF and LIRA/LIF is not taxed as it builds up.
+ Tax applies in full on withdrawal, which is the correct treatment. Non-registered withdrawals are treated as
+ return of capital; non-registered growth is taxed only to the extent of the taxable yield set
+ (currently <strong>${(p.nonRegYield*100).toFixed(1)}%</strong>).
+ <br /><br />
+ <strong>Credits applied.</strong> Alongside the basic personal amount, the projection applies the
+ <em>age amount</em> from 65 (reduced as income rises, and gone above roughly $105,000) and the
+ <em>pension income amount</em> on a defined-benefit pension at any age plus RRIF and LIF
+ withdrawals from 65. CPP and OAS do not qualify for the pension credit. The OAS recovery tax is
+ assessed on the previous year's income, as it is in practice, so a change in income affects the
+ clawback a year later.
+ <br /><br />
+ <strong>Simplifications:</strong> a single blended return with no sequence-of-returns or volatility
+ modelling, TFSA grouped with non-registered, no capital-gains/dividend distinction, and no spousal
+ or estate optimisation. Planning estimate only.`;
+}
+
+document.getElementById('calcBtn').onclick=()=>{ HAS_CALCULATED=true; calculate(true,true); };
+
+let liveTimer=null;
+function liveUpdate(e){
+ if(e && e.target && e.target.closest && e.target.closest('#settingsOverlay')) return;
+ autosave();
+ if(!HAS_CALCULATED) return; // wait for the first explicit calculation
+ clearTimeout(liveTimer);
+ liveTimer=setTimeout(()=>calculate(false,false),220);
+}
+document.addEventListener('input', liveUpdate);
+document.addEventListener('change', liveUpdate);
+
+/* ---------- Report ---------- */
+function escapeHtml(s){
+ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function buildReport(){
+ if(!LAST){ alert('Please calculate first.'); return; }
+ const {p, spend, detail, years, serial}=LAST;
+ const client=escapeHtml((document.getElementById('clientName').value||'').trim());
+ const advisor=escapeHtml((document.getElementById('advisorName').value||'').trim());
+ const today=new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+ const logoSrc=document.querySelector('header .csic-logo').src;
+ const st=settingsStatus();
+
+ const repMode=document.getElementById('repDetailed').checked?'detailed':'condensed';
+ const cols=buildColumns(p, detail.rows, repMode);
+ const thead='<tr>'+cols.map(c=>`<th class="${c.green?'spcol':''}">${escapeHtml(c.h)}</th>`).join('')+'</tr>';
+ const rows=detail.rows.map(r=>
+ `<tr class="${r.depleted?'dep':''}">`+
+ cols.map(c=>`<td class="${c.green?'spcol':''}">${c.raw?c.get(r):fmt(c.get(r))}</td>`).join('')+
+ '</tr>').join('');
+
+ const staleWarning = st.state==='expired'
+ ? `<div class="stale"><strong>Note:</strong> this projection was produced using
+ ${escapeHtml(SETTINGS.taxYear)} government figures, which were only valid to
+ ${escapeHtml(SETTINGS.validThrough)}. Tax brackets, CPP, OAS and the LIF reference rate
+ may since have changed. Please confirm before relying on these figures.</div>`
+ : '';
+
+ const html = `<div class="rep-actions">
+ <button type="button" class="rep-back" id="repBack">&larr; Back to calculator</button>
+ <button type="button" class="rep-print" id="repPrint">Print / Save as PDF</button>
+</div>
+<div class="head">
+ <div class="logo-row"><img class="csic-logo" src="${logoSrc}" alt="CS Investment Counsel Corporation" /></div>
+ <h1>Lifetime Spending Power Report</h1>
+ <div class="meta">
+ ${client?`Prepared for: <strong>${client}</strong> &nbsp;|&nbsp; `:''}${advisor?`Prepared by: <strong>${advisor}</strong> &nbsp;|&nbsp; `:''}Date: ${today}
+ </div>
+ <div class="serial">Plan reference: ${serial}</div>
+</div>
+<div class="rep-body">
+ ${staleWarning}
+ <div class="basis">
+ The following calculations are based on inputs itemized in the accompanying Notes and
+ Assumptions memorandum, produced by CSIC.
+ </div>
+ <div class="headline">
+ <div class="big">${fmt(spend)}</div>
+ <div class="sub">${p.targetOn
+ ? `Level spending power outside the target period &mdash; after tax, in today's dollars, to age ${p.lifeExp}`
+ : `Sustainable annual spending power &mdash; after tax, in today's dollars, every year to age ${p.lifeExp}`}</div>
+ </div>
+ <div class="stats">
+ <div class="stat"><div class="l">Lifetime total (today's $)</div><div class="n">${fmt(spend*years)}</div></div>
+ <div class="stat"><div class="l">Years funded</div><div class="n">${detail.yearsFunded}</div></div>
+ <div class="stat"><div class="l">Spending at age ${p.lifeExp} (actual $)</div><div class="n g">${fmt(detail.lastNominalSpend)}</div></div>
+ </div>
+
+ <h2>Year-by-Year Cash Flow</h2>
+ <div class="tbl-scroll">
+ <table><thead>${thead}</thead><tbody>${rows}</tbody></table>
+ </div>
+
+ <div class="note">
+ <strong>Reading this table.</strong> Every row reconciles: all inflows shown, less income tax and
+ any OAS recovery tax, equal the Indexed Spending Power for that year (highlighted green).
+ Withdrawals from LIRA/LIF are capped at the Ontario LIF maximum.
+ <br /><br />
+ <strong>Simplifications:</strong> a single blended return with no sequence-of-returns or volatility
+ modelling; non-registered withdrawals treated as return of capital with taxable yield applied at
+ ${(p.nonRegYield*100).toFixed(1)}%; TFSA grouped with non-registered; no spousal or estate optimisation.
+ </div>
+ <div class="foot">
+ CS Investment Counsel Corporation &middot; Plan reference ${serial} &middot; Calculator v${APP_VERSION}
+ &middot; ${escapeHtml(SETTINGS.taxYear)} tax figures${SETTINGS.updatedOn?', updated '+escapeHtml(SETTINGS.updatedOn):''}
+ &middot; This report is for illustration only. Figures are estimates based on the assumptions entered
+ and do not constitute financial, tax, or investment advice. Please consult your advisor before making decisions.
+ </div>
+</div>`;
+
+ const view=document.getElementById('reportView');
+ view.innerHTML=html;
+ view.style.display='block';
+ document.body.classList.add('report-open');
+ window.scrollTo(0,0);
+ document.getElementById('repPrint').onclick=()=>window.print();
+ document.getElementById('repBack').onclick=closeReport;
+}
+function closeReport(){
+ document.body.classList.remove('report-open');
+ const v=document.getElementById('reportView');
+ v.style.display='none'; v.innerHTML='';
+ document.getElementById('resultBlock').scrollIntoView({block:'start'});
+}
+document.getElementById('reportBtn').onclick=buildReport;
+document.addEventListener('keydown',e=>{
+ if(e.key!=='Escape') return;
+ if(document.body.classList.contains('report-open')) closeReport();
+ else if(document.getElementById('settingsOverlay').classList.contains('show')) closeSettings();
+});
+
+document.getElementById('toggleTable').onclick=function(){
+ const w=document.getElementById('tableWrap');
+ const show=w.style.display==='none';
+ w.style.display=show?'block':'none';
+ this.textContent=show?'Hide year-by-year cash flow':'Show year-by-year cash flow';
+};
+document.getElementById('viewToggle').onclick=function(){
+ TABLE_MODE=(TABLE_MODE==='detailed')?'condensed':'detailed';
+ this.textContent=(TABLE_MODE==='detailed')?'Switch to condensed view':'Switch to detailed view';
+ if(LAST) renderTable(LAST.p, LAST.detail);
+ document.getElementById('tableWrap').style.display='block';
+ document.getElementById('toggleTable').textContent='Hide year-by-year cash flow';
+};
+
+/* The CPP amount is only editable when the client is not receiving full CPP;
+   otherwise the tool supplies the statutory maximum adjusted for start age. */
+function syncBenefitFields(){
+ const full = document.getElementById('cppFull').value==='yes';
+ const amt = document.getElementById('cppAmt');
+ amt.disabled = full;
+ amt.style.background = full ? '#f0f0f0' : '#fff';
+ renderStatusBanner();
+}
+['cppFull','cppStart','oasStart','oasInclude'].forEach(id=>{
+ const el=document.getElementById(id);
+ el.addEventListener('change', syncBenefitFields);
+ el.addEventListener('input', syncBenefitFields);
+});
+
+/* ---------- Start-up ---------- */
+applyStorageState();
+refreshScenarioList();
+renderStatusBanner();
+syncBenefitFields();
+if(STORAGE_OK && restoreDraft()) setWorkState('Restored unsaved work');
+syncSliderLabels();
+</script>

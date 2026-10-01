@@ -1,0 +1,17 @@
+{
+  "name": "csic-spending-power-calculator",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Lifetime Spending Power Calculator for CS Investment Counsel Corporation",
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "serve": "node tests/serve.js",
+    "sync": "node scripts/sync.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.47.0"
+  }
+}
